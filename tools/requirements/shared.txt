@@ -1,0 +1,17 @@
+#
+# python  (3.8.5)
+# pip     (21.3.1)
+#
+# author: @contimatteo
+#
+
+#############################
+## Development
+
+pylint
+yapf
+
+#############################
+
+python-dotenv
+gym
