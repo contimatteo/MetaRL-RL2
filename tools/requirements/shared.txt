@@ -13,5 +13,8 @@ yapf
 
 #############################
 
+loguru
 python-dotenv
+
 gym
+gym[classic_control]

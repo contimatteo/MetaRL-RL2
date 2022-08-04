@@ -8,3 +8,6 @@
 #############################
 
 -r shared.txt
+
+tensorflow-macos
+tensorflow-metal
