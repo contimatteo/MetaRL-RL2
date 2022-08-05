@@ -16,16 +16,27 @@ class SequentialMemory():
     #
 
     def __reset_memory(self):
-        self._memory = np.full((self.n_max_steps), {})
+        # self._memory = [None for _ in range(self.n_max_steps)]
+
+        self._memory = {}
+        self._memory["states"] = []
+        self._memory["rewards"] = []
+        self._memory["actions"] = []
+        self._memory["next_states"] = []
 
     #
+
+    def reset(self) -> None:
+        self.__reset_memory()
+
+    def all(self) -> list:
+        return self._memory
 
     def store(self, step: int, data: dict) -> None:
         assert isinstance(step, int)
         assert isinstance(data, dict)
 
-        # self._memory[step] = json.dumps(data)
-        self._memory[step] = data
-
-    def reset(self) -> None:
-        self.__reset_memory()
+        self._memory["states"].append(data["state"])
+        self._memory["rewards"].append(data["reward"])
+        self._memory["actions"].append(data["action"])
+        self._memory["next_states"].append(data["next_state"])
