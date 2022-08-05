@@ -19,6 +19,7 @@ class SequentialMemory():
         # self._memory = [None for _ in range(self.n_max_steps)]
 
         self._memory = {}
+        self._memory["steps"] = 0
         self._memory["states"] = []
         self._memory["rewards"] = []
         self._memory["actions"] = []
@@ -36,6 +37,7 @@ class SequentialMemory():
         assert isinstance(step, int)
         assert isinstance(data, dict)
 
+        self._memory["steps"] += 1
         self._memory["states"].append(data["state"])
         self._memory["rewards"].append(data["reward"])
         self._memory["actions"].append(data["action"])

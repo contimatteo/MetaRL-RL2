@@ -25,6 +25,9 @@ class CriticNetwork(Model):
         x = self.out(x)
         return x
 
+    def loss(self):
+        pass
+
 
 class ActorNetwork(Model):
 
@@ -39,6 +42,9 @@ class ActorNetwork(Model):
         x = self.l2(x)
         x = self.out(x)
         return x
+
+    def loss(self):
+        pass
 
 
 ###
@@ -60,8 +66,11 @@ class ActorCritic(Agent):
 
     #
 
-    def __compute_TD_error(self) -> Any:
-        return
+    def __compute_TD_error(self, reward, state, next_state) -> Any:
+        """
+        δ ← R +  v(S′, w) − v(S, w)
+        """
+        return 1
 
     def train(self) -> None:
         """
@@ -81,11 +90,18 @@ class ActorCritic(Agent):
 
         episode = self.memory.all()
 
-        rewards = episode["rewards"]
+        _states = episode["states"]
+        _rewards = episode["rewards"]
+        _actions = episode["actions"]
+        _next_states = episode["next_states"]
 
-        print("")
-        print(rewards)
-        print("")
+        for step in range(episode["steps"]):
+            state = _states[step]
+            reward = _rewards[step]
+            action = _actions[step]
+            next_state = _next_states[step]
+
+            delta = self.__compute_TD_error(reward, state, next_state)
 
     def test(self):
         pass
