@@ -24,9 +24,9 @@ class CriticNetwork(Model):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__()
 
-        self.l1 = Dense(256, activation='relu')
-        self.l2 = Dense(256, activation='relu')
-        self.l3 = Dense(256, activation='relu')
+        self.l1 = Dense(512, activation='relu')
+        self.l2 = Dense(512, activation='relu')
+        self.l3 = Dense(512, activation='relu')
         self.out = Dense(1, activation=None)
 
     def call(self, input_data: Any, training=None, mask=None):
@@ -46,9 +46,9 @@ class ActorNetwork(Model):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__()
 
-        self.l1 = Dense(256, activation='relu')
-        self.l2 = Dense(256, activation='relu')
-        self.l3 = Dense(256, activation='relu')
+        self.l1 = Dense(512, activation='relu')
+        self.l2 = Dense(512, activation='relu')
+        self.l3 = Dense(512, activation='relu')
         self.out = Dense(2, activation='softmax')
 
     def call(self, input_data: Any, training=None, mask=None):
@@ -80,8 +80,8 @@ class ActorCritic(Agent):
         self.actor_network = ActorNetwork()
         self.critic_network = CriticNetwork()
 
-        self.actor_network_optimizer = gradient_descent_v2.SGD(learning_rate=1e-4)
-        self.critic_network_optimizer = gradient_descent_v2.SGD(learning_rate=1e-4)
+        self.actor_network_optimizer = gradient_descent_v2.SGD(learning_rate=1e-3)
+        self.critic_network_optimizer = gradient_descent_v2.SGD(learning_rate=1e-3)
 
     def configure(self, gamma=0.99):
         self.gamma = gamma

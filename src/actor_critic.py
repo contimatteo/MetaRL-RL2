@@ -9,7 +9,7 @@ from agents import ActorCritic
 ###
 
 ENV_NAME = "CartPole-v1"
-N_EPISODES = 100
+N_EPISODES = 10
 N_MAX_EPISODE_STEPS = 1000
 N_EPISODE_STEP_SECONDS_DELAY = .3
 
