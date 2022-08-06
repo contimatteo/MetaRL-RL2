@@ -6,7 +6,7 @@ import tensorflow_probability as tfp
 
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.layers import Dense
-from tensorflow.python.keras.optimizers import adam_v2
+from tensorflow.python.keras.optimizers import gradient_descent_v2
 
 from __types import T_Action, T_State, T_Reward
 
@@ -24,13 +24,15 @@ class CriticNetwork(Model):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__()
 
-        self.l1 = Dense(512, activation='relu')
+        self.l1 = Dense(256, activation='relu')
         self.l2 = Dense(256, activation='relu')
+        self.l3 = Dense(256, activation='relu')
         self.out = Dense(1, activation=None)
 
     def call(self, input_data: Any, training=None, mask=None):
         x = self.l1(input_data)
         x = self.l2(x)
+        x = self.l3(x)
         x = self.out(x)
         return x
 
@@ -44,13 +46,15 @@ class ActorNetwork(Model):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__()
 
-        self.l1 = Dense(512, activation='relu')
+        self.l1 = Dense(256, activation='relu')
         self.l2 = Dense(256, activation='relu')
+        self.l3 = Dense(256, activation='relu')
         self.out = Dense(2, activation='softmax')
 
     def call(self, input_data: Any, training=None, mask=None):
         x = self.l1(input_data)
         x = self.l2(x)
+        x = self.l3(x)
         x = self.out(x)
         return x
 
@@ -76,15 +80,21 @@ class ActorCritic(Agent):
         self.actor_network = ActorNetwork()
         self.critic_network = CriticNetwork()
 
-        self.actor_network_optimizer = adam_v2.Adam(learning_rate=1e-4)
-        self.critic_network_optimizer = adam_v2.Adam(learning_rate=1e-4)
+        self.actor_network_optimizer = gradient_descent_v2.SGD(learning_rate=1e-4)
+        self.critic_network_optimizer = gradient_descent_v2.SGD(learning_rate=1e-4)
 
     def configure(self, gamma=0.99):
         self.gamma = gamma
 
     #
 
-    def act(self, _: T_State) -> T_Action:
+    def act(self, state: T_State) -> T_Action:
+        ### TODO: move from probabilities to actions values using the {self.__actions()} method.
+
+        # probabilities = self.actor_network(np.array([state])).numpy()
+        # distribution = tfp.distributions.Categorical(probs=probabilities, dtype=tf.float32)
+        # action_tensor = distribution.sample()
+        # return int(action_tensor.numpy()[0])
         return self.env.action_space.sample()
 
     #
@@ -96,6 +106,7 @@ class ActorCritic(Agent):
          δ ← R + γv(S′, w) − v(S, w)
          (if S′ is terminal, then v(S′, w) ≐ 0)
         """
+        ### TODO: print values to check the formula
         if done:
             next_state_value = 0
         return reward + (self.gamma * next_state_value) - state_value
@@ -127,6 +138,8 @@ class ActorCritic(Agent):
         _next_states = episode["next_states"]
         _done = episode["done"]
 
+        metrics = {"steps": 0, "actor_network_loss": [], "critic_network_loss": []}
+
         for step in range(episode["steps"]):
             state = np.array([_states[step]])
             next_state = np.array([_next_states[step]])
@@ -144,6 +157,10 @@ class ActorCritic(Agent):
                 actor_loss = self.actor_network.loss_eval(td_error, action, actions_probs_pred)
                 critic_loss = self.critic_network.loss_eval(td_error)
 
+                metrics["steps"] += 1
+                metrics["actor_network_loss"].append(actor_loss)
+                metrics["critic_network_loss"].append(critic_loss)
+
             actor_network_gradients = tape1.gradient(
                 actor_loss, self.actor_network.trainable_variables
             )
@@ -157,6 +174,8 @@ class ActorCritic(Agent):
             self.critic_network_optimizer.apply_gradients(
                 zip(critic_network_gradients, self.critic_network.trainable_variables)
             )
+
+        return metrics
 
     def test(self):
         pass
