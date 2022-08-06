@@ -18,3 +18,5 @@ python-dotenv
 
 gym
 gym[classic_control]
+
+tensorflow_probability

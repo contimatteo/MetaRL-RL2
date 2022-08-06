@@ -72,18 +72,23 @@ class Agent():
     #
 
     def remember(
-        self, step: int, state: T_State, action: T_Action, reward: T_Reward, next_state: T_State
+        self, step: int, state: T_State, action: T_Action, reward: T_Reward, next_state: T_State,
+        done: bool
     ) -> None:
         self.memory.store(
             step, {
                 "state": state,
                 "action": action,
                 "reward": reward,
-                "next_state": next_state
+                "next_state": next_state,
+                "done": done,
             }
         )
 
     #
+
+    def configure(self, _: T_State) -> None:
+        raise NotImplementedError
 
     def act(self, _: T_State) -> None:
         raise NotImplementedError

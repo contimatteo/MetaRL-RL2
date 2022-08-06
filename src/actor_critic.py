@@ -1,4 +1,5 @@
-import time
+import utils.env_setup
+
 import gym
 
 from loguru import logger
@@ -51,12 +52,11 @@ def main():
             logger.debug(f" > step = {step}, action = {action}, reward = {reward}, done = {done}")
             __sleep()
 
-            agent.remember(step, state, action, reward, next_state)
+            agent.remember(step, state, action, reward, next_state, done)
             state = next_state
 
             if done:
                 agent.train()
-
                 state, _ = __env_reset()
                 break
 
