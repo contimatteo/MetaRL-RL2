@@ -10,7 +10,7 @@ from agents import ActorCritic
 ###
 
 ENV_NAME = "MountainCar-v0"  # "CartPole-v1"
-N_EPISODES = 10
+N_EPISODES = 15
 N_MAX_EPISODE_STEPS = 1000
 N_EPISODE_STEP_SECONDS_DELAY = .3
 

@@ -6,7 +6,7 @@ import tensorflow_probability as tfp
 
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.layers import Dense
-from tensorflow.python.keras.optimizers import gradient_descent_v2
+from tensorflow.python.keras.optimizers import adam_v2
 
 from __types import T_Action, T_State, T_Reward
 
@@ -34,9 +34,10 @@ class CriticNetwork(Model):
         x = self.out(x)
         return x
 
-    def loss_eval(self, td_error) -> Any:
+    @staticmethod
+    def loss(td_error) -> Any:
         ### operator is required for differentiability
-        return td_error**2
+        return tf.math.pow(td_error, 2)
 
 
 class ActorNetwork(Model):
@@ -49,7 +50,7 @@ class ActorNetwork(Model):
         self.l1 = Dense(512, activation='relu')
         self.l2 = Dense(512, activation='relu')
         self.out = Dense(n_actions, activation='softmax')  # discrete
-        # self.out = Dense(2, activation='linear')  # continuous
+        # self.out = Dense(n_actions, activation='linear')  # continuous
 
     def call(self, input_data: Any, training=None, mask=None):
         x = self.l1(input_data)
@@ -57,11 +58,12 @@ class ActorNetwork(Model):
         x = self.out(x)
         return x
 
-    def loss_eval(self, td_error, action, actions_probs_pred):
+    @staticmethod
+    def loss(actions_probs, action, td_error):
         """
         Negative of log probability of action taken multiplied by temporal difference used in q learning.
         """
-        dist = tfp.distributions.Categorical(probs=actions_probs_pred, dtype=tf.float32)
+        dist = tfp.distributions.Categorical(probs=actions_probs + .000001)
         return -1 * dist.log_prob(action) * td_error
 
 
@@ -79,8 +81,8 @@ class ActorCritic(Agent):
         self.actor_network = ActorNetwork(n_actions=self.env.action_space.n)
         self.critic_network = CriticNetwork()
 
-        self.actor_network_optimizer = gradient_descent_v2.SGD(learning_rate=5e-4)
-        self.critic_network_optimizer = gradient_descent_v2.SGD(learning_rate=5e-4)
+        self.actor_network_optimizer = adam_v2.Adam(learning_rate=5e-4)
+        self.critic_network_optimizer = adam_v2.Adam(learning_rate=5e-4)
 
     def configure(self, gamma=AC_PARAMS_GAMMA):
         self.gamma = gamma
@@ -154,33 +156,27 @@ class ActorCritic(Agent):
             action, reward, done = _actions[step], _rewards[step], _done[step]
 
             with tf.GradientTape() as tape1, tf.GradientTape() as tape2:
-                actions_probs_pred = self.actor_network(state, training=True)
-                state_value_pred = self.critic_network(state, training=True)
-                next_state_value_pred = self.critic_network(next_state, training=True)
+                actions_probs = self.actor_network(state, training=True)
+                state_value = self.critic_network(state, training=True)
+                next_state_value = self.critic_network(next_state, training=True)
 
-                td_error = self.__compute_TD_error(
-                    reward, state_value_pred, next_state_value_pred, done
-                )
+                td_error = self.__compute_TD_error(reward, state_value, next_state_value, done)
 
-                actor_loss = self.actor_network.loss_eval(td_error, action, actions_probs_pred)
-                critic_loss = self.critic_network.loss_eval(td_error)
+                actor_loss = ActorNetwork.loss(actions_probs, action, td_error)
+                critic_loss = CriticNetwork.loss(td_error)
 
-                episode_metrics["steps"] += 1
-                steps_metrics["actor_network_loss"].append(actor_loss)
-                steps_metrics["critic_network_loss"].append(critic_loss)
+            episode_metrics["steps"] += 1
+            steps_metrics["actor_network_loss"].append(actor_loss)
+            steps_metrics["critic_network_loss"].append(critic_loss)
 
-            actor_network_gradients = tape1.gradient(
-                actor_loss, self.actor_network.trainable_variables
-            )
-            critic_network_gradients = tape2.gradient(
-                critic_loss, self.critic_network.trainable_variables
-            )
+            actor_grads = tape1.gradient(actor_loss, self.actor_network.trainable_variables)
+            critic_grads = tape2.gradient(critic_loss, self.critic_network.trainable_variables)
 
             self.actor_network_optimizer.apply_gradients(
-                zip(actor_network_gradients, self.actor_network.trainable_variables)
+                zip(actor_grads, self.actor_network.trainable_variables)
             )
             self.critic_network_optimizer.apply_gradients(
-                zip(critic_network_gradients, self.critic_network.trainable_variables)
+                zip(critic_grads, self.critic_network.trainable_variables)
             )
 
         episode_metrics["actor_network_loss"] = np.mean(steps_metrics["actor_network_loss"])
