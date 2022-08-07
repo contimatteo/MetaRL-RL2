@@ -28,7 +28,7 @@ class Agent():
     def _state_space(self) -> tuple:
         return self.env.observation_space.shape
 
-    def __actions(self, space: gym.Space) -> Any:
+    def _actions(self, space: gym.Space) -> Any:
         ### https://stackoverflow.com/a/67929513
         types = [
             gym.spaces.discrete.Discrete,
@@ -37,7 +37,7 @@ class Agent():
             # gym.spaces.dict.Dict,
             # gym.spaces.tuple.Tuple,
         ]
-        assert type(space) not in types
+        assert type(space) in types
 
         #
 
@@ -58,7 +58,7 @@ class Agent():
         if isinstance(space, gym.spaces.dict.Dict):
             keys = space.spaces.keys()
             values_list = itertools.product(
-                *[self.__actions(sub_space) for sub_space in space.spaces.values()]
+                *[self._actions(sub_space) for sub_space in space.spaces.values()]
             )
             return [{key: value for key, value in zip(keys, values)} for values in values_list]
             # return space_list
@@ -66,7 +66,7 @@ class Agent():
         if isinstance(space, gym.spaces.tuple.Tuple):
             return [
                 list(element) for element in
-                itertools.product(*[self.__actions(sub_space) for sub_space in space.spaces])
+                itertools.product(*[self._actions(sub_space) for sub_space in space.spaces])
             ]
 
     #

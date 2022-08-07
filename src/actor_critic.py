@@ -3,25 +3,18 @@ import utils.env_setup
 import gym
 
 from loguru import logger
+from progress.bar import Bar
 
 from agents import ActorCritic
 
 ###
 
-ENV_NAME = "CartPole-v1"
+ENV_NAME = "MountainCar-v0"  # "CartPole-v1"
 N_EPISODES = 10
 N_MAX_EPISODE_STEPS = 1000
 N_EPISODE_STEP_SECONDS_DELAY = .3
 
-env = gym.make(ENV_NAME)
-
 ###
-
-
-def __env_reset():
-    state, info = env.reset(seed=42, return_info=True)
-    # env.render()
-    return state, info
 
 
 def __sleep():
@@ -36,20 +29,38 @@ def main():
     agent = ActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
 
     history = []
+    step = None
+    done = False
     next_state = None
-    state, _ = __env_reset()
+
+    ### ENV
+
+    env = gym.make(ENV_NAME)
+
+    # print("\n\n")
+    # logger.debug(f" > env = {ENV_NAME}")
+    # logger.debug(f" > action_space = {env.action_space}")
+    # logger.debug(f" > observation_space = {env.observation_space}")
+    # print("\n\n")
 
     ### TRAIN
 
+    bar = Bar('Running Episodes ...', max=N_EPISODES)
+
     for episode in range(N_EPISODES):
-        logger.debug(f" > EPISODE = {episode}")
+        step = 0
+        done = False
+
+        state, _ = env.reset(seed=42, return_info=True)
+        # env.render()
 
         agent.memory.reset()
 
-        for step in range(N_MAX_EPISODE_STEPS):
+        while not done:
+            step += 1
             action = agent.act(state)
-            next_state, reward, done, _ = env.step(action)
 
+            next_state, reward, done, _ = env.step(action)
             # env.render()
             # logger.debug(f" > step = {step}, action = {action}, reward = {reward}, done = {done}")
             __sleep()
@@ -57,21 +68,25 @@ def main():
             agent.remember(step, state, action, reward, next_state, done)
             state = next_state
 
-            if done:
-                episode_metrics = agent.train()
-                history.append(episode_metrics)
-                state, _ = __env_reset()
-                break
+        episode_metrics, _ = agent.train()
+
+        history.append(episode_metrics)
+        bar.next()
+
+    bar.finish()
 
     #
 
     print("\n\n\n")
 
     for episode_metrics in history:
-        for step in range(episode_metrics["steps"]):
-            actor_loss = episode_metrics["actor_network_loss"][step]
-            critic_loss = episode_metrics["critic_network_loss"][step]
-            logger.debug(f" > actor_loss = {actor_loss}, critic_loss = {critic_loss}")
+        ep_actor_loss = episode_metrics["actor_network_loss"]
+        ep_critic_loss = episode_metrics["critic_network_loss"]
+        logger.debug(f" > actor_loss = {ep_actor_loss}, critic_loss = {ep_critic_loss}")
+        # for step in range(episode_metrics["steps"]):
+        #     st_actor_loss = episode_metrics["actor_network_loss"][step]
+        #     st_critic_loss = episode_metrics["critic_network_loss"][step]
+        #     logger.debug(f" > actor_loss = {st_actor_loss[0]}, critic_loss = {st_critic_loss[0]}")
 
 
 ###
