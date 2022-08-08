@@ -88,6 +88,10 @@ def main():
         #     st_critic_loss = episode_metrics["critic_network_loss"][step]
         #     logger.debug(f" > actor_loss = {st_actor_loss[0]}, critic_loss = {st_critic_loss[0]}")
 
+    #
+
+    env.close()
+
 
 ###
 
