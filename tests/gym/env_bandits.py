@@ -1,9 +1,7 @@
+import gym
 import numpy as np
 
-import gym
-
 from gym import spaces
-from gym.utils import seeding
 
 ###
 
@@ -35,7 +33,6 @@ class ArmedBanditsEnv(gym.Env):
 
     def step(self, action):
         # Sample from the specified bandit using it's reward distribution
-        # assert (action < self.num_bandits).all()
         assert action < self.num_bandits
 
         sampled_means = self.mean[np.arange(self.num_experiments), action]
@@ -52,9 +49,29 @@ class ArmedBanditsEnv(gym.Env):
 
 ###
 
-### Initialize the environment of our multi-armed bandit problem
-# num_experiments = 2
-# num_bandits = 8
-# means = np.random.normal(size=(num_experiments, num_bandits))
-# stdev = np.ones((num_experiments, num_bandits))
-# env = ArmedBanditsEnv(means, stdev)
+
+def __simulation(num_experiments: int, num_bandits=int):
+    means = np.random.normal(size=(num_experiments, num_bandits))
+    stdev = np.ones((num_experiments, num_bandits))
+
+    env = ArmedBanditsEnv(mean=means, stddev=stdev)
+    env.reset()
+
+    for _ in range(100):
+        observation, reward, done, info = env.step(env.action_space.sample())
+
+
+def test():
+    __simulation(num_experiments=5, num_bandits=2)
+    __simulation(num_experiments=6, num_bandits=3)
+    __simulation(num_experiments=7, num_bandits=4)
+    __simulation(num_experiments=8, num_bandits=5)
+    __simulation(num_experiments=9, num_bandits=6)
+    __simulation(num_experiments=10, num_bandits=7)
+    __simulation(num_experiments=10, num_bandits=8)
+
+
+###
+
+if __name__ == "__main__":
+    test()
