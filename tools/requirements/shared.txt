@@ -16,8 +16,13 @@ yapf
 loguru
 progress
 python-dotenv
+pyglet
 
 gym
 gym[classic_control]
+metagym
+metagym[navigator2d]
+metagym[quadrotor]
+metagym[quadrupedal]
 
 tensorflow_probability
