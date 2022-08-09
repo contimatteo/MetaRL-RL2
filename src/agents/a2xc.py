@@ -15,7 +15,7 @@ from .base import Agent
 ###
 
 
-class AdvantageActorCritic(Agent):
+class XAdvantageActorCritic(Agent):
     """
     Advantage Actor-Critic (A2C)
     
@@ -33,10 +33,10 @@ class AdvantageActorCritic(Agent):
         action_advatange_n_steps: int = 1,
         actor_entropy_coef: float = 1e-3,
         opt_gradient_clip_norm: float = 0.25,
-        opt_actor_lr: float = 5e-4,
-        opt_critic_lr: float = 5e-4,
+        opt_actor_lr: float = 1e-4,
+        opt_critic_lr: float = 1e-4,
     ) -> None:
-        super(AdvantageActorCritic,
+        super(XAdvantageActorCritic,
               self).__init__(env_name=env_name, n_max_episode_steps=n_max_episode_steps)
 
         self._gamma = gamma

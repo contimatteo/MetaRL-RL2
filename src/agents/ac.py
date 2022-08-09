@@ -23,7 +23,9 @@ class ActorCritic(Agent):
         env_name: str,
         n_max_episode_steps: int,
         gamma: float = 0.99,
-        opt_gradient_clip_norm: float = 0.5
+        opt_gradient_clip_norm: float = 0.25,
+        opt_actor_lr: float = 5e-4,
+        opt_critic_lr: float = 5e-4,
     ) -> None:
         super(ActorCritic,
               self).__init__(env_name=env_name, n_max_episode_steps=n_max_episode_steps)
@@ -34,8 +36,8 @@ class ActorCritic(Agent):
         self.actor_network = ActorNetwork(n_actions=self.env.action_space.n)
         self.critic_network = CriticNetwork()
 
-        self.actor_network_optimizer = adam_v2.Adam(learning_rate=5e-5)
-        self.critic_network_optimizer = adam_v2.Adam(learning_rate=5e-5)
+        self.actor_network_optimizer = adam_v2.Adam(learning_rate=opt_actor_lr)
+        self.critic_network_optimizer = adam_v2.Adam(learning_rate=opt_critic_lr)
 
     #
 
@@ -66,7 +68,7 @@ class ActorCritic(Agent):
         Negative of log probability of action taken multiplied
         by temporal difference used in q learning.
         """
-        dist = tfp.distributions.Categorical(probs=action_probs + .000001)
+        dist = tfp.distributions.Categorical(probs=action_probs + .000001, dtype=tf.float32)
         return -1 * dist.log_prob(action) * action_advantage
 
     #
@@ -149,8 +151,8 @@ class ActorCritic(Agent):
             actor_grads = tape1.gradient(actor_loss, self.actor_network.trainable_variables)
             critic_grads = tape2.gradient(critic_loss, self.critic_network.trainable_variables)
 
-            # actor_grads, _ = tf.clip_by_global_norm(actor_grads, self._opt_gradient_clip_norm)
-            # critic_grads, _ = tf.clip_by_global_norm(critic_grads, self._opt_gradient_clip_norm)
+            actor_grads, _ = tf.clip_by_global_norm(actor_grads, self._opt_gradient_clip_norm)
+            critic_grads, _ = tf.clip_by_global_norm(critic_grads, self._opt_gradient_clip_norm)
 
             self.actor_network_optimizer.apply_gradients(
                 zip(actor_grads, self.actor_network.trainable_variables)

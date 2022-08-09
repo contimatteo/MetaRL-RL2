@@ -4,22 +4,32 @@ from typing import Union
 import utils.env_setup
 
 import gym
+import numpy as np
+import tensorflow as tf
 
 from loguru import logger
 from progress.bar import Bar
 
 from agents import ActorCritic, AdvantageActorCritic
+from agents.a2xc import XAdvantageActorCritic
 
 ###
 
 ENV_RENDER = False
 ENV_NAME = "LunarLander-v2"  # CartPole-v1 | MountainCar-v0
 
-N_EPISODES = 50
+N_EPISODES = 25
 N_MAX_EPISODE_STEPS = 1000
 N_EPISODE_STEP_SECONDS_DELAY = .3
 
 ###
+
+
+def __seed(env: gym.Env):
+    SEED = 666
+    tf.random.set_seed(SEED)
+    np.random.seed(SEED)
+    env.seed(SEED)
 
 
 def __sleep():
@@ -40,7 +50,11 @@ def run_agent(agent: Union[ActorCritic, AdvantageActorCritic]):
 
     env = gym.make(ENV_NAME)
 
+    __seed(env)
+
     ### TRAIN
+
+    print("\n")
 
     progbar = Bar('Running Episodes ...', max=N_EPISODES)
 
@@ -74,28 +88,32 @@ def run_agent(agent: Union[ActorCritic, AdvantageActorCritic]):
 
     #
 
-    print("\n\n\n")
-
     for episode_metrics in history:
-        act_loss = round(episode_metrics["actor_nn_loss_avg"], 4)
-        crt_loss = round(episode_metrics["critic_nn_loss_avg"], 4)
+        act_loss = episode_metrics["actor_nn_loss_avg"]
+        crt_loss = episode_metrics["critic_nn_loss_avg"]
         rewards_sum = episode_metrics["rewards_sum"]
+        rewards_avg = episode_metrics["rewards_avg"]
         logger.debug(
-            "A_loss = {}, C_loss = {}, rwd_sum = {}".format(act_loss, crt_loss, rewards_sum)
+            "A_loss = {:.3f}, C_loss = {:.3f}, rwd_sum = {:.3f}, rwd_avg = {:.3f}".format(
+                act_loss, crt_loss, rewards_sum, rewards_avg
+            )
         )
 
-    print("\n\n\n")
+    print("\n")
 
 
 ###
 
 
 def main():
-    # agent1 = ActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
-    # run_agent(agent1)
+    agent1 = ActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
+    run_agent(agent1)
 
     agent2 = AdvantageActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
     run_agent(agent2)
+
+    # agent3 = XAdvantageActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
+    # run_agent(agent3)
 
 
 ###
