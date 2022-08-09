@@ -97,16 +97,20 @@ class AdvantageActorCritic(Agent):
 
     #
 
-    def _discounted_rewards(self, rewards: np.ndarray) -> T_Rewards:
+    def _discounted_rewards(self, rewards: np.ndarray) -> np.ndarray:
+        discounted_rewards = []
         reward_sum = 0
 
         rewards = rewards.tolist()
         rewards.reverse()
 
-        discounted_rewards = [r + self._gamma * reward_sum for r in rewards]
+        for r in rewards:
+            reward_sum = r + self._gamma * reward_sum
+            discounted_rewards.append(reward_sum)
+
         discounted_rewards.reverse()
 
-        return discounted_rewards
+        return np.array(discounted_rewards)
 
     #
 
@@ -127,15 +131,6 @@ class AdvantageActorCritic(Agent):
         return int(action_tensor.numpy()[0])
 
     def train(self) -> None:
-        episode = self.memory.all()
-
-        _states = np.array(episode["states"])
-        _actions = np.array(episode["actions"])
-        _rewards = np.array(episode["rewards"])
-
-        _discounted_rewards = self._discounted_rewards(_rewards)
-        _discounted_rewards = np.array(_discounted_rewards)
-
         steps_metrics = {"actor_nn_loss": [], "critic_nn_loss": [], "rewards": []}
         episode_metrics = {
             "steps": 0,
@@ -144,6 +139,16 @@ class AdvantageActorCritic(Agent):
             "rewards_avg": 0,
             "rewards_sum": 0,
         }
+
+        #
+
+        episode = self.memory.all()
+
+        _states = episode["states"]
+        _actions = episode["actions"]
+        _rewards = episode["rewards"]
+
+        _discounted_rewards = self._discounted_rewards(_rewards)
 
         #
 

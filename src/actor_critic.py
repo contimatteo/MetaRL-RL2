@@ -11,7 +11,7 @@ from loguru import logger
 from progress.bar import Bar
 
 from agents import ActorCritic, AdvantageActorCritic
-from agents.a2xc import XAdvantageActorCritic
+# from agents.a2xc import XAdvantageActorCritic
 
 ###
 
