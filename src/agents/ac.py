@@ -5,7 +5,7 @@ import tensorflow_probability as tfp
 from tensorflow.python.keras.optimizers import adam_v2
 
 from models import ActorNetwork, CriticNetwork
-from __types import T_Action, T_State
+from __types import T_Action, T_State, T_Reward, T_Rewards
 
 from .baseline import Agent
 
@@ -35,9 +35,6 @@ class ActorCritic(Agent):
     #
 
     def act(self, state: T_State, random: bool = False) -> T_Action:
-        ### TODO: handle continuous action space
-        ### ...
-
         ### DISCRETE (random)
         if random:
             return self.env.action_space.sample()
@@ -53,19 +50,20 @@ class ActorCritic(Agent):
 
     #
 
-    def _TD_error(
-        self, reward: float, state_value: float, next_state_value: float, done: bool
+    def _action_advantage_estimate(
+        self, reward: T_Reward, state: T_State, next_state: T_State, done: bool
     ) -> float:
         """
-         δ ← R + γv(S′, w) − v(S, w)
-         (if S′ is terminal, then v(S′, w) ≐ 0)
+        TD-Advantage-Estimate (also called "TD-error" or "1-Step Advantage") \n
+        `δ ← R + γv(S′, w) − v(S, w)` \n
+        if S′ is terminal, then v(S′, w) ≐ 0
         """
-        ### TODO: print values to check the formula
-        if done:
-            next_state_value = 0
+        state_value = self.critic_network(state, training=True)
+        next_state_value = self.critic_network(next_state, training=True) if not done else 0
+
         return reward + (self.gamma * next_state_value) - state_value
 
-    def _actor_network_loss(self, actions_probs, action, td_error):
+    def _actor_network_loss(self, actions_probs: np.ndarray, action: T_Action, td_error: float):
         """
         Negative of log probability of action taken multiplied
         by temporal difference used in q learning.
@@ -73,11 +71,14 @@ class ActorCritic(Agent):
         dist = tfp.distributions.Categorical(probs=actions_probs + .000001)
         return -1 * dist.log_prob(action) * td_error
 
-    def _critic_network_loss(self, td_error):
+    def _critic_network_loss(self, td_error: float):
         """
         2th-power operator is required for differentiability
         """
         return tf.math.pow(td_error, 2)
+
+    def _discounted_rewards(self, rewards: T_Rewards) -> T_Rewards:
+        return rewards
 
     #
 
@@ -115,26 +116,22 @@ class ActorCritic(Agent):
             "rewards_sum": 0,
         }
 
-        ### TODO: discounted rewards implementation missing !!
-        ### ...
-        _discounted_rewards = _rewards
+        _discounted_rewards = self._discounted_rewards(_rewards)
 
         #
 
         for step in range(episode["steps"]):
             state = np.array([_states[step]])
-            next_state = np.array([_next_states[step]])
+            nxt_state = np.array([_next_states[step]])
             action, done = _actions[step], _done[step]
-            reward, discounted_reward = _rewards[step], _discounted_rewards[step]
+            reward, w_reward = _rewards[step], _discounted_rewards[step]
 
             with tf.GradientTape() as tape1, tf.GradientTape() as tape2:
                 actions_probs = self.actor_network(state, training=True)
-                state_value = self.critic_network(state, training=True)
-                next_state_value = self.critic_network(next_state, training=True)
 
-                td_error = self._TD_error(discounted_reward, state_value, next_state_value, done)
-                actor_loss = self._actor_network_loss(actions_probs, action, td_error)
-                critic_loss = self._critic_network_loss(td_error)
+                action_advantage = self._action_advantage_estimate(w_reward, state, nxt_state, done)
+                actor_loss = self._actor_network_loss(actions_probs, action, action_advantage)
+                critic_loss = self._critic_network_loss(action_advantage)
 
             actor_grads = tape1.gradient(actor_loss, self.actor_network.trainable_variables)
             critic_grads = tape2.gradient(critic_loss, self.critic_network.trainable_variables)
