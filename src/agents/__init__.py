@@ -2,4 +2,4 @@
 
 from .ac import ActorCritic
 
-from .reinforce import REINFORCE
+from .a2c import AdvantageActorCritic
