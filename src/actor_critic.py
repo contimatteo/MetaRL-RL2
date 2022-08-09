@@ -10,7 +10,7 @@ from agents import ActorCritic
 ###
 
 ENV_NAME = "MountainCar-v0"  # "CartPole-v1"
-N_EPISODES = 15
+N_EPISODES = 50
 N_MAX_EPISODE_STEPS = 1000
 N_EPISODE_STEP_SECONDS_DELAY = .3
 
@@ -80,13 +80,15 @@ def main():
     print("\n\n\n")
 
     for episode_metrics in history:
-        ep_actor_loss = episode_metrics["actor_network_loss"]
-        ep_critic_loss = episode_metrics["critic_network_loss"]
-        logger.debug(f" > actor_loss = {ep_actor_loss}, critic_loss = {ep_critic_loss}")
-        # for step in range(episode_metrics["steps"]):
-        #     st_actor_loss = episode_metrics["actor_network_loss"][step]
-        #     st_critic_loss = episode_metrics["critic_network_loss"][step]
-        #     logger.debug(f" > actor_loss = {st_actor_loss[0]}, critic_loss = {st_critic_loss[0]}")
+        act_loss = round(episode_metrics["actor_nn_loss_avg"], 4)
+        crt_loss = round(episode_metrics["critic_nn_loss_avg"], 4)
+        rewards_sum = episode_metrics["rewards_sum"]
+        rewards_avg = episode_metrics["rewards_avg"]
+        logger.debug(
+            f"a_loss = {act_loss}, c_loss = {crt_loss}, rewards_sum = {rewards_sum}, rewards_avg = {rewards_avg}"
+        )
+
+    print("\n\n\n")
 
     #
 
