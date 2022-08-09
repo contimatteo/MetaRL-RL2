@@ -62,6 +62,7 @@ class AdvantageActorCritic(Agent):
         `Aφ(s,a) = ∑_{k=0..n−1} (γ^k * r_{t+k+1}) + (γ^n * Vφ(s_{t+n+1})) − Vφ(st)` \n
         """
         return tf.math.subtract(discounted_rewards, state_values)
+        # return tf.math.subtract(discounted_rewards, tf.reshape(state_values, (len(state_values))))
 
     def _critic_network_loss(self, discounted_rewards: T_Rewards, state_value: Any):
         # return MeanSquaredError()(discounted_rewards, state_value)
@@ -110,7 +111,7 @@ class AdvantageActorCritic(Agent):
 
         discounted_rewards.reverse()
 
-        return np.array(discounted_rewards)
+        return np.array(discounted_rewards, dtype=np.float32)
 
     #
 
@@ -159,7 +160,9 @@ class AdvantageActorCritic(Agent):
             actions_probs = self.actor_network(_states, training=True)
             state_values = self.critic_network(_states, training=True)
 
-            state_values = tf.reshape(state_values, (len(state_values), ))
+            state_values = tf.constant(state_values)
+            actions_probs = tf.constant(actions_probs)
+            _discounted_rewards = tf.constant(_discounted_rewards)
 
             action_advantages = self._action_advantage_estimate(_discounted_rewards, state_values)
 

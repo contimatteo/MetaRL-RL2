@@ -16,9 +16,9 @@ from agents import ActorCritic, AdvantageActorCritic
 ###
 
 ENV_RENDER = False
-ENV_NAME = "LunarLander-v2"  # CartPole-v1 | MountainCar-v0
+ENV_NAME = "LunarLander-v2"  # CartPole-v1 | MountainCar-v0 | LunarLander-v2
 
-N_EPISODES = 25
+N_EPISODES = 10
 N_MAX_EPISODE_STEPS = 1000
 N_EPISODE_STEP_SECONDS_DELAY = .3
 
@@ -106,8 +106,8 @@ def run_agent(agent: Union[ActorCritic, AdvantageActorCritic]):
 
 
 def main():
-    agent1 = ActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
-    run_agent(agent1)
+    # agent1 = ActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
+    # run_agent(agent1)
 
     agent2 = AdvantageActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
     run_agent(agent2)
