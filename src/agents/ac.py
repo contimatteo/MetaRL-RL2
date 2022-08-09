@@ -18,10 +18,18 @@ AC_PARAMS_GAMMA = 0.99
 
 class ActorCritic(Agent):
 
-    def __init__(self, *args, **kwargs) -> None:
-        super(ActorCritic, self).__init__(*args, **kwargs)
+    def __init__(
+        self,
+        env_name: str,
+        n_max_episode_steps: int,
+        gamma: float = 0.99,
+        opt_gradient_clip_norm: float = 0.5
+    ) -> None:
+        super(ActorCritic,
+              self).__init__(env_name=env_name, n_max_episode_steps=n_max_episode_steps)
 
-        self.gamma = AC_PARAMS_GAMMA
+        self._gamma = gamma
+        self._opt_gradient_clip_norm = opt_gradient_clip_norm
 
         self.actor_network = ActorNetwork(n_actions=self.env.action_space.n)
         self.critic_network = CriticNetwork()
@@ -29,8 +37,42 @@ class ActorCritic(Agent):
         self.actor_network_optimizer = adam_v2.Adam(learning_rate=5e-5)
         self.critic_network_optimizer = adam_v2.Adam(learning_rate=5e-5)
 
-    def configure(self, gamma: float = None):
-        self.gamma = gamma if gamma is not None else self.gamma
+    #
+
+    def _action_advantage_estimate(
+        self, reward: T_Reward, state_value: float, next_state_value: float, done: bool
+    ) -> float:
+        """
+        ### TD-Error (1-Step Advantage)
+        `Aφ(s,a) = r(s,a,s′) + γVφ(s′) − Vφ(s)` \n
+        if `s′` is terminal, then `Vφ(s′) ≐ 0`
+        """
+        if done:
+            next_state_value = 0
+
+        return reward + (self._gamma * next_state_value) - state_value
+
+    def _critic_network_loss(self, action_advantage: float):
+        """
+        2th-power operator is required for differentiability
+        """
+        return tf.math.pow(action_advantage, 2)
+
+    def _actor_network_loss(
+        self, actions_probs: np.ndarray, action: T_Action, action_advantage: float
+    ):
+        """
+        `∇θJ(θ) = 𝔼s[∇θlog(π_θ(s,a)) Aφ(s,a)]` \n
+        Negative of log probability of action taken multiplied
+        by temporal difference used in q learning.
+        """
+        dist = tfp.distributions.Categorical(probs=actions_probs + .000001)
+        return -1 * dist.log_prob(action) * action_advantage
+
+    #
+
+    def _discounted_rewards(self, rewards: T_Rewards) -> T_Rewards:
+        return rewards
 
     #
 
@@ -39,50 +81,14 @@ class ActorCritic(Agent):
         if random:
             return self.env.action_space.sample()
 
+        ### CONTINOUOS (random)
+        # probabilities = self.actor_network(np.array([state])).numpy()
+
         ### DISCRETE (sample from probabilities distribution)
         probabilities = self.actor_network(np.array([state])).numpy()
         distribution = tfp.distributions.Categorical(probs=probabilities, dtype=tf.float32)
         action_tensor = distribution.sample()
         return int(action_tensor.numpy()[0])
-
-        ### CONTINOUOS (random)
-        # probabilities = self.actor_network(np.array([state])).numpy()
-
-    #
-
-    def _action_advantage_estimate(
-        self, reward: T_Reward, state_value: float, next_state_value: float, done: bool
-    ) -> float:
-        """
-        TD-Advantage-Estimate (also called "TD-error" or "1-Step Advantage") \n
-        `δ ← R + γv(S′, w) − v(S, w)` \n
-        if S′ is terminal, then v(S′, w) ≐ 0
-        """
-        if done:
-            next_state_value = 0
-
-        return reward + (self.gamma * next_state_value) - state_value
-
-    def _actor_network_loss(
-        self, actions_probs: np.ndarray, action: T_Action, action_advantage: float
-    ):
-        """
-        Negative of log probability of action taken multiplied
-        by temporal difference used in q learning.
-        """
-        dist = tfp.distributions.Categorical(probs=actions_probs + .000001)
-        return -1 * dist.log_prob(action) * action_advantage
-
-    def _critic_network_loss(self, action_advantage: float):
-        """
-        2th-power operator is required for differentiability
-        """
-        return tf.math.pow(action_advantage, 2)
-
-    def _discounted_rewards(self, rewards: T_Rewards) -> T_Rewards:
-        return rewards
-
-    #
 
     def train(self) -> None:
         """
@@ -142,6 +148,9 @@ class ActorCritic(Agent):
 
             actor_grads = tape1.gradient(actor_loss, self.actor_network.trainable_variables)
             critic_grads = tape2.gradient(critic_loss, self.critic_network.trainable_variables)
+
+            # actor_grads, _ = tf.clip_by_global_norm(actor_grads, self._opt_gradient_clip_norm)
+            # critic_grads, _ = tf.clip_by_global_norm(critic_grads, self._opt_gradient_clip_norm)
 
             self.actor_network_optimizer.apply_gradients(
                 zip(actor_grads, self.actor_network.trainable_variables)

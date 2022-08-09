@@ -1,4 +1,6 @@
 # pylint: disable=wrong-import-order, unused-import, consider-using-f-string
+from typing import Union
+
 import utils.env_setup
 
 import gym
@@ -6,14 +8,14 @@ import gym
 from loguru import logger
 from progress.bar import Bar
 
-from agents import ActorCritic
+from agents import ActorCritic, AdvantageActorCritic
 
 ###
 
 ENV_RENDER = False
 ENV_NAME = "LunarLander-v2"  # CartPole-v1 | MountainCar-v0
 
-N_EPISODES = 10
+N_EPISODES = 50
 N_MAX_EPISODE_STEPS = 1000
 N_EPISODE_STEP_SECONDS_DELAY = .3
 
@@ -28,9 +30,7 @@ def __sleep():
 ###
 
 
-def main():
-    agent = ActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
-
+def run_agent(agent: Union[ActorCritic, AdvantageActorCritic]):
     history = []
     step = None
     done = False
@@ -39,12 +39,6 @@ def main():
     ### ENV
 
     env = gym.make(ENV_NAME)
-
-    # print("\n\n")
-    # logger.debug(f" > env = {ENV_NAME}")
-    # logger.debug(f" > action_space = {env.action_space}")
-    # logger.debug(f" > observation_space = {env.observation_space}")
-    # print("\n\n")
 
     ### TRAIN
 
@@ -86,18 +80,22 @@ def main():
         act_loss = round(episode_metrics["actor_nn_loss_avg"], 4)
         crt_loss = round(episode_metrics["critic_nn_loss_avg"], 4)
         rewards_sum = episode_metrics["rewards_sum"]
-        rewards_avg = episode_metrics["rewards_avg"]
         logger.debug(
-            "a_loss = {}, c_loss = {}, rewards_sum = {}, rewards_avg = {}".format(
-                act_loss, crt_loss, rewards_sum, rewards_avg
-            )
+            "A_loss = {}, C_loss = {}, rwd_sum = {}".format(act_loss, crt_loss, rewards_sum)
         )
 
     print("\n\n\n")
 
-    #
 
-    env.close()
+###
+
+
+def main():
+    agent1 = ActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
+    agent2 = AdvantageActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
+
+    run_agent(agent1)
+    # run_agent(agent2)
 
 
 ###

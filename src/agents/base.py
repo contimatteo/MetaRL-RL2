@@ -87,7 +87,8 @@ class Agent():
 
     #
 
-    def configure(self, _: T_State) -> None:
+    @property
+    def name(self) -> str:
         raise NotImplementedError
 
     def act(self, _: T_State) -> None:
