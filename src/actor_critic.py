@@ -18,7 +18,7 @@ from agents import ActorCritic, AdvantageActorCritic
 ENV_RENDER = False
 ENV_NAME = "LunarLander-v2"  # CartPole-v1 | MountainCar-v0 | LunarLander-v2
 
-N_EPISODES = 10
+N_EPISODES = 20
 N_MAX_EPISODE_STEPS = 1000
 N_EPISODE_STEP_SECONDS_DELAY = .3
 

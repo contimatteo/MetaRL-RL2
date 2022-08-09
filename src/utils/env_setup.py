@@ -12,6 +12,7 @@ load_dotenv()
 ###
 
 # warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 ###
 
