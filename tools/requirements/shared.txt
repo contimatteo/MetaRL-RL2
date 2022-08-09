@@ -17,9 +17,11 @@ loguru
 progress
 python-dotenv
 pyglet
+swig
 wandb
 
 gym
+gym[box2d]
 gym[classic_control]
 metagym
 metagym[navigator2d]

@@ -26,8 +26,8 @@ class ActorCritic(Agent):
         self.actor_network = ActorNetwork(n_actions=self.env.action_space.n)
         self.critic_network = CriticNetwork()
 
-        self.actor_network_optimizer = adam_v2.Adam(learning_rate=1e-4)
-        self.critic_network_optimizer = adam_v2.Adam(learning_rate=1e-4)
+        self.actor_network_optimizer = adam_v2.Adam(learning_rate=5e-5)
+        self.critic_network_optimizer = adam_v2.Adam(learning_rate=5e-5)
 
     def configure(self, gamma: float = None):
         self.gamma = gamma if gamma is not None else self.gamma

@@ -14,13 +14,11 @@ class CriticNetwork(Model):
     def __init__(self, *args: Any, **kwargs: Any):
         super().__init__()
 
-        self.l1 = Dense(512, activation='relu')
-        self.l2 = Dense(512, activation='relu')
+        self.d1 = Dense(512, activation='relu')
         self.out = Dense(1, activation='linear')
 
     def call(self, input_data: Any, training=None, mask=None):
-        x = self.l1(input_data)
-        x = self.l2(x)
+        x = self.d1(input_data)
         x = self.out(x)
         return x
 
@@ -32,13 +30,11 @@ class ActorNetwork(Model):
 
         assert isinstance(n_actions, int)
 
-        self.l1 = Dense(512, activation='relu')
-        self.l2 = Dense(512, activation='relu')
+        self.d1 = Dense(512, activation='relu')
         self.out = Dense(n_actions, activation='softmax')  # discrete
         # self.out = Dense(n_actions, activation='linear')  # continuous
 
     def call(self, input_data: Any, training=None, mask=None):
-        x = self.l1(input_data)
-        x = self.l2(x)
+        x = self.d1(input_data)
         x = self.out(x)
         return x

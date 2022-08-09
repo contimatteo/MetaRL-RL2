@@ -10,8 +10,10 @@ from agents import ActorCritic
 
 ###
 
-ENV_NAME = "MountainCar-v0"  # "CartPole-v1"
-N_EPISODES = 10
+ENV_RENDER = False
+ENV_NAME = "LunarLander-v2"  # CartPole-v1 | MountainCar-v0
+
+N_EPISODES = 1000
 N_MAX_EPISODE_STEPS = 1000
 N_EPISODE_STEP_SECONDS_DELAY = .3
 
@@ -53,7 +55,7 @@ def main():
         done = False
 
         state, _ = env.reset(seed=42, return_info=True)
-        # env.render()
+        ENV_RENDER and env.render()
 
         agent.memory.reset()
 
@@ -62,7 +64,7 @@ def main():
             action = agent.act(state)
 
             next_state, reward, done, _ = env.step(action)
-            # env.render()
+            ENV_RENDER and env.render()
             # logger.debug(f" > step = {step}, action = {action}, reward = {reward}, done = {done}")
             __sleep()
 
