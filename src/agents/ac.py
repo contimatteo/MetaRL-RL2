@@ -67,7 +67,8 @@ class ActorCritic(Agent):
 
     def _actor_network_loss(self, actions_probs, action, td_error):
         """
-        Negative of log probability of action taken multiplied by temporal difference used in q learning.
+        Negative of log probability of action taken multiplied
+        by temporal difference used in q learning.
         """
         dist = tfp.distributions.Categorical(probs=actions_probs + .000001)
         return -1 * dist.log_prob(action) * td_error

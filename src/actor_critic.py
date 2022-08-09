@@ -1,3 +1,4 @@
+# pylint: disable=wrong-import-order, unused-import, consider-using-f-string
 import utils.env_setup
 
 import gym
@@ -10,7 +11,7 @@ from agents import ActorCritic
 ###
 
 ENV_NAME = "MountainCar-v0"  # "CartPole-v1"
-N_EPISODES = 50
+N_EPISODES = 10
 N_MAX_EPISODE_STEPS = 1000
 N_EPISODE_STEP_SECONDS_DELAY = .3
 
@@ -45,9 +46,9 @@ def main():
 
     ### TRAIN
 
-    bar = Bar('Running Episodes ...', max=N_EPISODES)
+    progbar = Bar('Running Episodes ...', max=N_EPISODES)
 
-    for episode in range(N_EPISODES):
+    for _ in range(N_EPISODES):
         step = 0
         done = False
 
@@ -71,9 +72,9 @@ def main():
         episode_metrics, _ = agent.train()
 
         history.append(episode_metrics)
-        bar.next()
+        progbar.next()
 
-    bar.finish()
+    progbar.finish()
 
     #
 
@@ -85,7 +86,9 @@ def main():
         rewards_sum = episode_metrics["rewards_sum"]
         rewards_avg = episode_metrics["rewards_avg"]
         logger.debug(
-            f"a_loss = {act_loss}, c_loss = {crt_loss}, rewards_sum = {rewards_sum}, rewards_avg = {rewards_avg}"
+            "a_loss = {}, c_loss = {}, rewards_sum = {}, rewards_avg = {}".format(
+                act_loss, crt_loss, rewards_sum, rewards_avg
+            )
         )
 
     print("\n\n\n")
