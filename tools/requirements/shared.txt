@@ -17,6 +17,7 @@ loguru
 progress
 python-dotenv
 pyglet
+wandb
 
 gym
 gym[classic_control]
