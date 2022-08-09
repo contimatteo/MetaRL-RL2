@@ -59,14 +59,14 @@ class ActorCritic(Agent):
         return tf.math.pow(action_advantage, 2)
 
     def _actor_network_loss(
-        self, actions_probs: np.ndarray, action: T_Action, action_advantage: float
+        self, action_probs: np.ndarray, action: T_Action, action_advantage: float
     ):
         """
         `∇θJ(θ) = 𝔼s[∇θlog(π_θ(s,a)) Aφ(s,a)]` \n
         Negative of log probability of action taken multiplied
         by temporal difference used in q learning.
         """
-        dist = tfp.distributions.Categorical(probs=actions_probs + .000001)
+        dist = tfp.distributions.Categorical(probs=action_probs + .000001)
         return -1 * dist.log_prob(action) * action_advantage
 
     #

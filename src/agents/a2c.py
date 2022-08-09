@@ -64,41 +64,40 @@ class AdvantageActorCritic(Agent):
         return self._critic_loss_coef * mean_squared_error(discounted_rewards, state_value)
 
     def _actor_network_loss(self, actions_probs: Any, actions: Any, action_advantages: Any):
-        probability = []
-        log_probability = []
+        policy_losses = []
+        entropy_losses = []
 
-        for pb, a in zip(actions_probs, actions):
-            dist = tfp.distributions.Categorical(probs=pb, dtype=tf.float32)
-            log_prob = dist.log_prob(a)
-            prob = dist.prob(a)
-            probability.append(prob)
-            log_probability.append(log_prob)
+        for step_actions_probs, action_taken, advantage_estimate in zip(
+            actions_probs, actions, action_advantages.numpy()
+        ):
+            advantage = tf.constant(advantage_estimate)  ### exclude from gradient computation
+            #
+            distribution = tfp.distributions.Categorical(probs=step_actions_probs, dtype=tf.float32)
+            action_taken_prob = distribution.prob(action_taken)
+            action_taken_log_prob = distribution.log_prob(action_taken)
+            #
+            _policy_loss = tf.math.multiply(action_taken_log_prob, advantage)
+            _entropy_loss = tf.math.negative(
+                tf.math.multiply(action_taken_prob, action_taken_log_prob)
+            )
+            #
+            policy_losses.append(_policy_loss)
+            entropy_losses.append(_entropy_loss)
 
-        p_loss = []
-        e_loss = []
-        td = action_advantages.numpy()
+        policy_loss = tf.reduce_mean(tf.stack(policy_losses))
+        entropy_loss = tf.reduce_mean(tf.stack(entropy_losses))
 
-        for pb, t, lpb in zip(probability, td, log_probability):
-            t = tf.constant(t)
-            policy_loss = tf.math.multiply(lpb, t)
-            entropy_loss = tf.math.negative(tf.math.multiply(pb, lpb))
-            p_loss.append(policy_loss)
-            e_loss.append(entropy_loss)
-
-        p_loss = tf.stack(p_loss)
-        e_loss = tf.stack(e_loss)
-        p_loss = tf.reduce_mean(p_loss)
-        e_loss = tf.reduce_mean(e_loss)
-
-        return -p_loss - 0.0001 * e_loss
+        return -policy_loss - 0.0001 * entropy_loss
 
     #
 
-    def _discounted_rewards(self, rewards: T_Rewards) -> T_Rewards:
+    def _discounted_rewards(self, rewards: np.ndarray) -> T_Rewards:
         reward_sum = 0
         discounted_rewards = []
 
+        rewards = rewards.tolist()
         rewards.reverse()
+
         for r in rewards:
             reward_sum = r + self._gamma * reward_sum
             discounted_rewards.append(reward_sum)
@@ -128,12 +127,12 @@ class AdvantageActorCritic(Agent):
 
         _states = np.array(episode["states"])
         _actions = np.array(episode["actions"])
-        _next_states = np.array(episode["next_states"])
-        _done = np.array(episode["done"])
+        # _next_states = np.array(episode["next_states"])
+        # _done = np.array(episode["done"])
+        _rewards = np.array(episode["rewards"])
 
-        _rewards = episode["rewards"]
-        _discounted_rewards = np.array(self._discounted_rewards(_rewards))
-        # _discounted_rewards = tf.reshape(_discounted_rewards, (len(_discounted_rewards), ))
+        _discounted_rewards = self._discounted_rewards(_rewards)
+        _discounted_rewards = np.array(_discounted_rewards)
 
         steps_metrics = {"actor_nn_loss": [], "critic_nn_loss": [], "rewards": []}
         episode_metrics = {

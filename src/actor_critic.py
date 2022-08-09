@@ -91,11 +91,11 @@ def run_agent(agent: Union[ActorCritic, AdvantageActorCritic]):
 
 
 def main():
-    agent1 = ActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
-    agent2 = AdvantageActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
+    # agent1 = ActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
+    # run_agent(agent1)
 
-    run_agent(agent1)
-    # run_agent(agent2)
+    agent2 = AdvantageActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
+    run_agent(agent2)
 
 
 ###
