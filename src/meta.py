@@ -8,7 +8,7 @@ import numpy as np
 import tensorflow as tf
 
 from loguru import logger
-from progress.bar import Bar
+from progress.bar import Bar, IncrementalBar
 
 from agents import MetaAgent
 from environments import BanditEnv
@@ -17,8 +17,9 @@ from environments import BanditEnv
 
 RANDOM_SEED = 666
 
+N_TRIALS = 5
 N_EPISODES = 5
-N_MAX_EPISODE_STEPS = 10
+N_MAX_EPISODE_STEPS = 100
 
 ###
 
@@ -56,36 +57,36 @@ def main():
     history = []
 
     print("\n")
-    # progbar = Bar('Running Episodes ...', max=N_EPISODES)
 
-    for episode in range(N_EPISODES):
-        print("\n")
-        print("EPISODE ", episode)
-        env = envs[episode % len(envs)]
-
+    for trial in range(N_TRIALS):
+        env = envs[trial % len(envs)]
         agent.sync_env(env)
-        agent.reset_memory()
 
-        step = 0
-        done = False
-        state, _ = env.reset(seed=RANDOM_SEED)
+        ep_progbar = Bar(f"TRIAL {trial} -> Episodes ...", max=N_EPISODES)
 
-        while not done and step < N_MAX_EPISODE_STEPS:
-            step += 1
-            action = agent.act(state)
+        for _ in range(N_EPISODES):
+            agent.reset_memory()
 
-            next_state, reward, done, _ = env.step(action)
-            logger.debug(f" > step = {step}, action = {action}, reward = {reward}, done = {done}")
+            step = 0
+            done = False
+            state, _ = env.reset(seed=RANDOM_SEED)
 
-            agent.remember(step, state, action, reward, next_state, done)
-            state = next_state
+            while not done and step < N_MAX_EPISODE_STEPS:
+                step += 1
+                action = agent.act(state)
 
-        episode_metrics = agent.train()
+                next_state, reward, done, _ = env.step(action)
+                # logger.debug(f" > step = {step}, action = {action}, reward = {reward}, done = {done}")
 
-        history.append(episode_metrics)
+                agent.remember(step, state, action, reward, next_state, done)
+                state = next_state
 
-        # progbar.next()
-    #progbar.finish()
+            episode_metrics = agent.train()
+            history.append(episode_metrics)
+
+            ep_progbar.next()
+
+        ep_progbar.finish()
 
     #
 
