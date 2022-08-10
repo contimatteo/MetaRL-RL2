@@ -48,9 +48,22 @@ class MetaAgent():
     #
 
     def train(self) -> Any:
-        episode_metrics = []
-        ### ...
-        return episode_metrics
+        ep_metrics = []
+
+        #
+
+        ep_data = self.memory.to_tf_dataset()
+
+        for ep_data_batch in ep_data.batch(4):
+            _states = ep_data_batch["states"]
+            _rewards = ep_data_batch["rewards"]
+            _actions = ep_data_batch["actions"]
+            _next_states = ep_data_batch["next_states"]
+            _done = ep_data_batch["done"]
+
+        #
+
+        return ep_metrics
 
     def test(self):
         pass
