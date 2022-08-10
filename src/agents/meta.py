@@ -27,6 +27,20 @@ class MetaAgent():
     def name(self) -> str:
         return "MetaAgent"
 
+    @property
+    def action_space(self) -> gym.Space:
+        return self.env.action_space
+
+    @property
+    def obs_space(self) -> gym.Space:
+        return self.env.observation_space
+
+    @property
+    def n_actions(self) -> int:
+        n_actions = self.action_space.n
+        assert isinstance(n_actions, int) and n_actions > 0
+        return n_actions
+
     #
 
     def _TD_error(
