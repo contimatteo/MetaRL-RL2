@@ -71,8 +71,8 @@ class MetaAgent():
         ### {next_state_values} input tensors.
 
         ### INFO: stop gradient to avoid backpropagating through the advantage estimator
-        # return tf.stop_gradient(returns), tf.stop_gradient(advantages)
-        return returns, advantages
+        # return returns, advantages
+        return tf.stop_gradient(returns), tf.stop_gradient(advantages)
 
     #
 
