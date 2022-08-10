@@ -37,8 +37,8 @@ class AdvantageActorCritic(Agent):
         entropy_loss_coef: float = 1e-3,
         critic_loss_coef: float = 0.5,
         opt_gradient_clip_norm: float = 0.25,
-        opt_actor_lr: float = 1e-4,
-        opt_critic_lr: float = 1e-4,
+        opt_actor_lr: float = 5e-4,
+        opt_critic_lr: float = 5e-4,
     ) -> None:
         super(AdvantageActorCritic,
               self).__init__(env_name=env_name, n_max_episode_steps=n_max_episode_steps)
