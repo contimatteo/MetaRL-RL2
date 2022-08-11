@@ -2,6 +2,7 @@ from typing import Any
 
 import numpy as np
 import tensorflow as tf
+import tensorflow_probability as tfp
 
 from policies import Policy
 from networks import ActorNetwork, CriticNetwork
@@ -76,11 +77,39 @@ class A3C(A2C):
             delta = rewards[t] + (gamma * not_dones[t] * next_state_v[t]) - state_v[t]
             advantages[t] = delta + (gamma * gae_lambda * advantages[t + 1] * not_dones[t])
 
-        # returns = tf.convert_to_tensor(advantages + state_v, dtype=tf.float32)
         advantages = tf.convert_to_tensor(advantages, dtype=tf.float32)
 
-        ### normalization taken care by the underlying algo
-        ### stop gradient to avoid backpropagating through the advantage estimator
-        # return tf.stop_gradient(returns), tf.stop_gradient(advantages)
-
         return self._standardize_advantage_estimates(advantages)
+
+    def _actor_network_loss(self, actions_probs: Any, actions: Any, action_advantages: Any):
+        entropy_losses = []
+        policy_losses = []
+
+        for step_actions_probs, action_taken, advantage_estimate in zip(
+            actions_probs, actions, action_advantages.numpy()
+        ):
+            advantage = tf.constant(advantage_estimate)  ### exclude from gradient computation
+            distribution = tfp.distributions.Categorical(
+                probs=step_actions_probs + .000001, dtype=tf.float32
+            )
+            ### Policy
+            policy_loss = tf.math.multiply(distribution.log_prob(action_taken), advantage)
+            policy_losses.append(policy_loss)
+            ### Entropy
+            entropy_loss = tf.math.multiply(step_actions_probs, distribution.log_prob(action_taken))
+            # entropy_loss = tf.math.negative(entropy_loss) ### TODO: with/without ?
+            entropy_losses.append(entropy_loss)
+
+        def __batch_loss_reduction(batch_losses):
+            loss = tf.stack(batch_losses)
+            ### TODO: which is the right loss reduce operator?
+            # return tf.reduce_mean(loss)
+            return tf.reduce_sum(loss)
+
+        policy_loss = __batch_loss_reduction(policy_losses)
+
+        entropy_loss = __batch_loss_reduction(entropy_losses)
+        entropy_loss = tf.math.multiply(self._entropy_loss_coef, entropy_loss)
+
+        ### the Actor loss is the "negative log-likelihood"
+        return -policy_loss - entropy_loss
