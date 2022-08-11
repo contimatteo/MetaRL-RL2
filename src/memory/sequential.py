@@ -63,5 +63,25 @@ class SequentialMemory():
 
         return batches
 
-    def to_dataset(self) -> tf.data.Dataset:
-        return None
+    def to_tf_dataset(self) -> tf.data.Dataset:
+        # return tf.data.Dataset.from_tensor_slices(
+        #     np.column_stack(
+        #         (
+        #             np.array(self._memory["states"]),
+        #             np.array(self._memory["rewards"]),
+        #             np.array(self._memory["actions"]),
+        #             np.array(self._memory["next_states"]),
+        #             np.array(self._memory["done"]),
+        #         )
+        #     )
+        # )
+
+        return tf.data.Dataset.from_tensor_slices(
+            {
+                "states": np.array(self._memory["states"]),
+                "rewards": np.array(self._memory["rewards"]),
+                "actions": np.array(self._memory["actions"]),
+                "next_states": np.array(self._memory["next_states"]),
+                "done": np.array(self._memory["done"]),
+            }
+        )

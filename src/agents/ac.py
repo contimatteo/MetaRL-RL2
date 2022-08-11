@@ -4,10 +4,10 @@ import tensorflow_probability as tfp
 
 from tensorflow.python.keras.optimizers import adam_v2
 
-from models import ActorNetwork, CriticNetwork
+from networks import ActorNetwork, CriticNetwork
 from __types import T_Action, T_State, T_Reward, T_Rewards
 
-from .base import Agent
+from .base import BaseOldAgent
 
 ###
 
@@ -16,7 +16,7 @@ AC_PARAMS_GAMMA = 0.99
 ###
 
 
-class ActorCritic(Agent):
+class ActorCritic(BaseOldAgent):
 
     def __init__(
         self,
