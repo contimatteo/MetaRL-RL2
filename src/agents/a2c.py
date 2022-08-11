@@ -4,11 +4,10 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 
-from tensorflow.python.keras.losses import mean_squared_error, MeanSquaredError
+from tensorflow.python.keras.losses import mean_squared_error
 from tensorflow.python.keras.optimizers import adam_v2
 
 from networks import ActorNetwork, CriticNetwork
-from __types import T_Action, T_Actions, T_State, T_Reward, T_Rewards
 
 from .base import Agent
 
@@ -63,7 +62,7 @@ class AdvantageActorCritic(Agent):
     #
 
     def _action_advantage_estimate(
-        self, rewards: T_Reward, state_values: Any, next_state_values: Any
+        self, rewards: Any, state_values: Any, next_state_values: Any
     ) -> Any:
         """
         ### TD-Error (1-Step Advantage)
@@ -129,7 +128,7 @@ class AdvantageActorCritic(Agent):
 
     #
 
-    def act(self, state: T_State, random: bool = False) -> T_Action:
+    def act(self, state: Any, random: bool = False) -> Any:
         ### DISCRETE (random)
         if random:
             return self.env.action_space.sample()
