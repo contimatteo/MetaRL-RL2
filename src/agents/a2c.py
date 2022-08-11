@@ -9,12 +9,12 @@ from tensorflow.python.keras.optimizers import adam_v2
 
 from networks import ActorNetwork, CriticNetwork
 
-from .base import Agent
+from .base import BaseOldAgent
 
 ###
 
 
-class AdvantageActorCritic(Agent):
+class AdvantageActorCritic(BaseOldAgent):
     """
     Advantage Actor-Critic (A2C)
     

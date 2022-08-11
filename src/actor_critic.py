@@ -10,8 +10,9 @@ import tensorflow as tf
 from loguru import logger
 from progress.bar import Bar
 
-from agents import ActorCritic, AdvantageActorCritic
-# from agents.a2xc import XAdvantageActorCritic
+from agents import AdvantageActorCritic, A2C
+from networks import ActorNetwork, CriticNetwork
+from policies import NetworkPolicy
 
 ###
 
@@ -34,35 +35,23 @@ def __seed(env: gym.Env):
     env.seed(SEED)
 
 
-def __sleep():
-    # time.sleep(N_EPISODE_STEP_SECONDS_DELAY)
-    pass
-
-
 ###
 
 
-def run_agent(agent: Union[ActorCritic, AdvantageActorCritic]):
-    history = []
-    step = None
-    done = False
-    next_state = None
-
-    ### ENV
-
-    env = gym.make(ENV_NAME)
-
+def run_agent(env, agent):
     __seed(env)
 
     ### TRAIN
 
-    print("\n")
+    history = []
 
+    print("\n")
     progbar = Bar('Running Episodes ...', max=N_EPISODES)
 
     for _ in range(N_EPISODES):
         step = 0
         done = False
+        next_state = None
 
         state, _ = env.reset(seed=42, return_info=True)
         ENV_RENDER and env.render()
@@ -76,14 +65,13 @@ def run_agent(agent: Union[ActorCritic, AdvantageActorCritic]):
             next_state, reward, done, _ = env.step(action)
             ENV_RENDER and env.render()
             # logger.debug(f" > step = {step}, action = {action}, reward = {reward}, done = {done}")
-            __sleep()
 
             agent.remember(step, state, action, reward, next_state, done)
             state = next_state
 
-        episode_metrics, _ = agent.train()
+        # episode_metrics, _ = agent.train()
+        # history.append(episode_metrics)
 
-        history.append(episode_metrics)
         progbar.next()
 
     progbar.finish()
@@ -108,14 +96,30 @@ def run_agent(agent: Union[ActorCritic, AdvantageActorCritic]):
 
 
 def main():
-    # agent1 = ActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
-    # run_agent(agent1)
+    env = gym.make(ENV_NAME)
 
-    agent2 = AdvantageActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
-    run_agent(agent2)
+    #
 
-    # agent3 = XAdvantageActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
-    # run_agent(agent3)
+    # a2c_old = AdvantageActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
+    # run_agent(env, agent2)
+
+    #
+
+    actor_network = ActorNetwork(n_actions=env.action_space.n)
+    critic_network = CriticNetwork()
+
+    policy = NetworkPolicy(
+        state_space=env.observation_space, action_space=env.action_space, network=actor_network
+    )
+
+    new_agent = A2C(
+        n_max_episode_steps=N_MAX_EPISODE_STEPS,
+        policy=policy,
+        actor_network=actor_network,
+        critic_network=critic_network
+    )
+
+    run_agent(env, new_agent)
 
 
 ###

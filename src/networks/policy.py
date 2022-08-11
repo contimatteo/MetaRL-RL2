@@ -20,7 +20,7 @@ class PolicyNetwork(Network):
         self._action_space = action_space
 
         ### head
-        self.flat = Flatten()
+        # self.flat = Flatten()
         ### backbone
         self.d1 = Dense(512, activation='relu')
         self.d2 = Dense(512, activation='relu')
@@ -34,8 +34,8 @@ class PolicyNetwork(Network):
     #
 
     def call(self, inputs: Any, training: bool = None, mask=None):
-        x = self.flat(inputs)
-        x = self.d1(x)
+        # x = self.flat(inputs)
+        x = self.d1(inputs)
         x = self.d2(x)
         x = self.out(x)
         return x

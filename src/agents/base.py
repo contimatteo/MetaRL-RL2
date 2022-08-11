@@ -11,7 +11,7 @@ from __types import T_Action, T_State, T_Reward
 ###
 
 
-class Agent():
+class BaseOldAgent():
 
     def __init__(self, env_name: str, n_max_episode_steps: int) -> None:
         self.memory = SequentialMemory(n_max_episode_steps)
