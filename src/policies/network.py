@@ -33,9 +33,7 @@ class NetworkPolicy(Policy):
         self.policy_network = network
         self.action_sampling_mode = action_sampling_mode
 
-    def _act(self, obs: Any, **kwargs) -> np.ndarray:
-        assert len(obs.shape) > 1  ### batch dimension is required
-
+    def _act(self, obs: np.ndarray, **kwargs) -> np.ndarray:
         act_probs = self.policy_network(obs, training=False).numpy()
 
         if self.action_sampling_mode == "distribution":
@@ -43,7 +41,7 @@ class NetworkPolicy(Policy):
                 probs=act_probs + .000001, dtype=tf.float32
             )
 
-            actions = distribution.sample().numpy().astype(int)
+            actions = distribution.sample().numpy()
             assert actions.shape[0] == obs.shape[0]
 
             return actions

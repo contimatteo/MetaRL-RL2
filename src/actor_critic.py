@@ -12,7 +12,7 @@ from progress.bar import Bar
 
 from agents import AdvantageActorCritic, A2C
 from networks import ActorNetwork, CriticNetwork
-from policies import NetworkPolicy
+from policies import NetworkPolicy, RandomPolicy
 
 ###
 
@@ -60,7 +60,7 @@ def run_agent(env, agent):
 
         while not done:
             step += 1
-            action = agent.act(state)
+            action = int(agent.act(state)[0])
 
             next_state, reward, done, _ = env.step(action)
             ENV_RENDER and env.render()
@@ -98,6 +98,9 @@ def run_agent(env, agent):
 def main():
     env = gym.make(ENV_NAME)
 
+    state_space = env.observation_space
+    action_space = env.action_space
+
     #
 
     # a2c_old = AdvantageActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
@@ -108,8 +111,9 @@ def main():
     actor_network = ActorNetwork(n_actions=env.action_space.n)
     critic_network = CriticNetwork()
 
+    # policy = RandomPolicy(state_space=state_space, action_space=action_space)
     policy = NetworkPolicy(
-        state_space=env.observation_space, action_space=env.action_space, network=actor_network
+        state_space=state_space, action_space=action_space, network=actor_network
     )
 
     new_agent = A2C(

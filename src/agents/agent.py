@@ -69,7 +69,7 @@ class Agent():
 
     #
 
-    def act(self, state: Any) -> Any:
+    def act(self, state: np.ndarray) -> np.ndarray:
         raise NotImplementedError
 
     def train(self, batch_size: int) -> Any:

@@ -2,6 +2,7 @@ from typing import Any
 
 import abc
 import gym
+import numpy as np
 
 ###
 
@@ -15,7 +16,7 @@ class Policy(abc.ABC):
     #
 
     @abc.abstractmethod
-    def _act(self, obs, **kwargs) -> Any:
+    def _act(self, obs: np.ndarray, **kwargs) -> np.ndarray:
         pass
 
     #
@@ -28,5 +29,13 @@ class Policy(abc.ABC):
 
     #
 
-    def act(self, obs, mask=None, training=True) -> Any:
-        return self._act(obs, mask=mask, training=training)
+    def act(self, obs: np.ndarray, mask=None) -> np.ndarray:
+        assert isinstance(obs, np.ndarray)
+
+        if len(obs.shape) == 1:
+            ### reshape in order to match network `batch` dimension
+            obs = np.expand_dims(obs, axis=0)  ### (x,) -> (1, x)
+
+        assert len(obs.shape) > 1  ### batch dimension is required
+
+        return self._act(obs, mask=mask)

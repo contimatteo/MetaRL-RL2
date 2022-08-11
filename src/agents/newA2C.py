@@ -64,20 +64,8 @@ class A2C(Agent):
 
     #
 
-    def act(self, state: np.ndarray) -> int:
-        assert isinstance(state, np.ndarray)
-
-        ### flatten input observation
-        state = state.flatten()  ###
-        ### reshape in order to match network `batch` dimension
-        state = np.expand_dims(state, axis=0)  ### (x,) -> (1, x)
-
-        action_foreach_state = self.policy.act(state)
-
-        ### convert `numpy.int` type to native python type
-        action = action_foreach_state[0].item()
-
-        return action
+    def act(self, state: np.ndarray) -> np.ndarray:
+        return self.policy.act(state)
 
     def train(self, batch_size: int) -> Any:
         ep_metrics = []
