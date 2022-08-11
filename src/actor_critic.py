@@ -9,7 +9,7 @@ import tensorflow as tf
 from loguru import logger
 from progress.bar import Bar
 
-from agents import A2C
+from agents import A2C, A3C
 from networks import ActorNetwork, CriticNetwork
 from policies import NetworkPolicy
 
@@ -23,8 +23,10 @@ ENV_RENDER = False
 ENV_NAME = "LunarLander-v2"
 
 N_EPISODES = 10
-N_MAX_EPISODE_STEPS = 25
+N_MAX_EPISODE_STEPS = 500
 N_EPISODE_STEP_SECONDS_DELAY = .3
+
+BATCH_SIZE = 8
 
 ###
 
@@ -47,7 +49,7 @@ def run_agent(env, agent: A2C):
         done = False
         next_state = None
 
-        state, _ = env.reset(seed=42, return_info=True)
+        state, _ = env.reset(seed=RANDOM_SEED, return_info=True)
         ENV_RENDER and env.render()
 
         agent.memory.reset()
@@ -63,7 +65,7 @@ def run_agent(env, agent: A2C):
             agent.remember(step, state, action, reward, next_state, done)
             state = next_state
 
-        episode_metrics = agent.train(batch_size=8)
+        episode_metrics = agent.train(batch_size=BATCH_SIZE)
         history.append(episode_metrics)
 
         progbar.next()
@@ -74,13 +76,15 @@ def run_agent(env, agent: A2C):
 
     for episode_metrics in history:
         Al_avg = episode_metrics["actor_nn_loss_avg"]
-        Al_sum = episode_metrics["actor_nn_loss_sum"]
+        # Al_sum = episode_metrics["actor_nn_loss_sum"]
         Cl_avg = episode_metrics["critic_nn_loss_avg"]
-        Cl_sum = episode_metrics["critic_nn_loss_sum"]
+        # Cl_sum = episode_metrics["critic_nn_loss_sum"]
         R_avg = episode_metrics["rewards_avg"]
+        R_sum = episode_metrics["rewards_sum"]
         logger.debug(
-            "> Al_avg = {:.3f}, Al_sum = {:.3f} Cl_avg = {:.3f}, Cl_sum = {:.3f}, R_avg = {:.3f}".
-            format(Al_avg, Al_sum, Cl_avg, Cl_sum, R_avg)
+            "> Al_avg = {:.3f}, Cl_avg = {:.3f}, R_avg = {:.3f}, R_sum = {:.3f}".format(
+                Al_avg, Cl_avg, R_avg, R_sum
+            )
         )
 
     print("\n")
@@ -95,23 +99,41 @@ def main():
     state_space = env.observation_space
     action_space = env.action_space
 
+    ###
+
+    a2c_actor_network = ActorNetwork(n_actions=env.action_space.n)
+    a2c_critic_network = CriticNetwork()
+
+    a2c_policy = NetworkPolicy(
+        state_space=state_space, action_space=action_space, network=a2c_actor_network
+    )
+
+    a2c = A2C(
+        n_max_episode_steps=N_MAX_EPISODE_STEPS,
+        policy=a2c_policy,
+        actor_network=a2c_actor_network,
+        critic_network=a2c_critic_network
+    )
+
+    run_agent(env, a2c)
+
     #
 
-    actor_network = ActorNetwork(n_actions=env.action_space.n)
-    critic_network = CriticNetwork()
+    a3c_actor_network = ActorNetwork(n_actions=env.action_space.n)
+    a3c_critic_network = CriticNetwork()
 
-    policy = NetworkPolicy(
-        state_space=state_space, action_space=action_space, network=actor_network
+    a3c_policy = NetworkPolicy(
+        state_space=state_space, action_space=action_space, network=a3c_actor_network
     )
 
-    new_agent = A2C(
+    a3c = A3C(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
-        policy=policy,
-        actor_network=actor_network,
-        critic_network=critic_network
+        policy=a3c_policy,
+        actor_network=a3c_actor_network,
+        critic_network=a3c_critic_network
     )
 
-    run_agent(env, new_agent)
+    run_agent(env, a3c)
 
 
 ###

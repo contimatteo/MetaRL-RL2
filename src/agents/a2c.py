@@ -16,13 +16,6 @@ from .agent import Agent
 
 
 class A2C(Agent):
-    """
-    Advantage Actor-Critic (A2C)
-    TODO:
-     - {entropy_loss_coef} theory + application
-     - {critic_loss_coef} theory + application
-     - {_action_advantage_estimate} must be rewritten following "N-Step Advantage Estimate"
-    """
 
     PY_NUMERIC_EPS = 1e-8
 
@@ -34,17 +27,15 @@ class A2C(Agent):
         critic_network: CriticNetwork,
         gamma: float = 0.99,
         standardize_advantage_estimate: bool = True,
-        entropy_loss_coef: float = 1e-3,
         critic_loss_coef: float = 0.5,
         opt_gradient_clip_norm: float = 0.25,
         opt_actor_lr: float = 1e-4,
-        opt_critic_lr: float = 1e-3,
+        opt_critic_lr: float = 5e-4,
     ) -> None:
         super(A2C, self).__init__(n_max_episode_steps=n_max_episode_steps, policy=policy)
 
         self._gamma = gamma
         self._critic_loss_coef = critic_loss_coef
-        self._entropy_loss_coef = entropy_loss_coef
         self._opt_gradient_clip_norm = opt_gradient_clip_norm
         self._standardize_advantage_estimate = standardize_advantage_estimate
 
@@ -73,7 +64,8 @@ class A2C(Agent):
 
     #
 
-    def _advantage_estimates(self, rewards: Any, state_v: Any, next_state_v: Any) -> Any:
+    ### TODO: must be rewritten following "N-Step Advantage Estimate"
+    def _advantage_estimates(self, rewards: Any, state_v: Any, next_state_v: Any, done: Any) -> Any:
         """
         ### TD-Error (1-Step Advantage)
         `Aφ(s,a) = r(s,a,s′) + γVφ(s′) − Vφ(s)` \n
@@ -85,13 +77,16 @@ class A2C(Agent):
         _advantages_expr2 = tf.math.multiply(self._gamma, next_state_v)  ### γVφ(s′)
         advantages = _advantages_expr1 + _advantages_expr2
 
-        if self._standardize_advantage_estimate:
-            advantages = (
-                (advantages - tf.math.reduce_mean(advantages)) /
-                (tf.math.reduce_std(advantages) + self.PY_NUMERIC_EPS)
-            )
+        return self._standardize_advantage_estimates(advantages)
 
-        return advantages
+    def _standardize_advantage_estimates(self, advantages: Any) -> Any:
+        if not self._standardize_advantage_estimate:
+            return advantages
+
+        return (
+            (advantages - tf.math.reduce_mean(advantages)) /
+            (tf.math.reduce_std(advantages) + self.PY_NUMERIC_EPS)
+        )
 
     def _critic_network_loss(self, advantages: Any, state_value: Any):
         return self._critic_loss_coef * mean_squared_error(advantages, state_value)
@@ -160,7 +155,9 @@ class A2C(Agent):
                 next_state_values = tf.reshape(next_state_values, (len(next_state_values)))
 
                 action_advantages = tf.stop_gradient(
-                    self._advantage_estimates(_disc_rewards, state_values, next_state_values)
+                    self._advantage_estimates(
+                        _disc_rewards, state_values, next_state_values, _done
+                    )
                 )
 
                 actor_loss = self._actor_network_loss(actions_probs, _actions, action_advantages)
