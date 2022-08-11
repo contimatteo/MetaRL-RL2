@@ -96,6 +96,3 @@ class BaseOldAgent():
 
     def train(self) -> None:
         raise NotImplementedError
-
-    def test(self) -> None:
-        raise NotImplementedError

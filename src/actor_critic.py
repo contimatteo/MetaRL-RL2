@@ -1,8 +1,7 @@
 # pylint: disable=wrong-import-order, unused-import, consider-using-f-string
-from typing import Union
-
 import utils.env_setup
 
+import random
 import gym
 import numpy as np
 import tensorflow as tf
@@ -10,11 +9,13 @@ import tensorflow as tf
 from loguru import logger
 from progress.bar import Bar
 
-from agents import AdvantageActorCritic, A2C
+from agents import A2C
 from networks import ActorNetwork, CriticNetwork
-from policies import NetworkPolicy, RandomPolicy
+from policies import NetworkPolicy
 
 ###
+
+RANDOM_SEED = 666
 
 ENV_RENDER = False
 # ENV_NAME = "MountainCar-v0"
@@ -28,18 +29,11 @@ N_EPISODE_STEP_SECONDS_DELAY = .3
 ###
 
 
-def __seed(env: gym.Env):
-    SEED = 666
-    tf.random.set_seed(SEED)
-    np.random.seed(SEED)
-    env.seed(SEED)
-
-
-###
-
-
 def run_agent(env, agent: A2C):
-    __seed(env)
+    env.seed(RANDOM_SEED)
+    random.seed(RANDOM_SEED)
+    np.random.seed(RANDOM_SEED)
+    tf.random.set_seed(RANDOM_SEED)
 
     ### TRAIN
 
@@ -103,15 +97,9 @@ def main():
 
     #
 
-    # a2c_old = AdvantageActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
-    # run_agent(env, a2c_old)
-
-    #
-
     actor_network = ActorNetwork(n_actions=env.action_space.n)
     critic_network = CriticNetwork()
 
-    # policy = RandomPolicy(state_space=state_space, action_space=action_space)
     policy = NetworkPolicy(
         state_space=state_space, action_space=action_space, network=actor_network
     )
