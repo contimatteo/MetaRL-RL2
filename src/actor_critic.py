@@ -22,7 +22,7 @@ ENV_RENDER = False
 ENV_NAME = "LunarLander-v2"
 
 N_EPISODES = 10
-N_MAX_EPISODE_STEPS = 1000
+N_MAX_EPISODE_STEPS = 25
 N_EPISODE_STEP_SECONDS_DELAY = .3
 
 ###
@@ -38,7 +38,7 @@ def __seed(env: gym.Env):
 ###
 
 
-def run_agent(env, agent):
+def run_agent(env, agent: A2C):
     __seed(env)
 
     ### TRAIN
@@ -69,8 +69,8 @@ def run_agent(env, agent):
             agent.remember(step, state, action, reward, next_state, done)
             state = next_state
 
-        # episode_metrics, _ = agent.train()
-        # history.append(episode_metrics)
+        episode_metrics = agent.train(batch_size=8)
+        history.append(episode_metrics)
 
         progbar.next()
 
@@ -79,14 +79,14 @@ def run_agent(env, agent):
     #
 
     for episode_metrics in history:
-        act_loss = episode_metrics["actor_nn_loss_avg"]
-        crt_loss = episode_metrics["critic_nn_loss_avg"]
-        rewards_sum = episode_metrics["rewards_sum"]
-        rewards_avg = episode_metrics["rewards_avg"]
-        logger.debug(
-            "A_loss = {:.3f}, C_loss = {:.3f}, rwd_sum = {:.3f}, rwd_avg = {:.3f}".format(
-                act_loss, crt_loss, rewards_sum, rewards_avg
-            )
+        a_loss_avg = episode_metrics["actor_nn_loss_avg"]
+        a_loss_sum = episode_metrics["actor_nn_loss_sum"]
+        c_loss_avg = episode_metrics["critic_nn_loss_avg"]
+        c_loss_sum = episode_metrics["critic_nn_loss_sum"]
+        rwd_avg = episode_metrics["rewards_avg"]
+        print(
+            "> A_loss_avg = {:.3f}, A_loss_sum = {:.3f} C_loss_avg = {:.3f}, C_loss_sum = {:.3f}, rwd_avg = {:.3f}"
+            .format(a_loss_avg, a_loss_sum, c_loss_avg, c_loss_sum, rwd_avg)
         )
 
     print("\n")
@@ -104,7 +104,7 @@ def main():
     #
 
     # a2c_old = AdvantageActorCritic(ENV_NAME, N_MAX_EPISODE_STEPS)
-    # run_agent(env, agent2)
+    # run_agent(env, a2c_old)
 
     #
 
