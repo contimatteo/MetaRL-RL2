@@ -128,7 +128,7 @@ class AdvantageActorCritic(BaseOldAgent):
 
     #
 
-    def act(self, state: Any, random: bool = False) -> Any:
+    def act(self, state: Any, random: bool = False) -> np.ndarray:
         ### DISCRETE (random)
         if random:
             return self.env.action_space.sample()
@@ -138,10 +138,9 @@ class AdvantageActorCritic(BaseOldAgent):
         distribution = tfp.distributions.Categorical(
             probs=probabilities + .000001, dtype=tf.float32
         )
-        action_tensor = distribution.sample()
-        return int(action_tensor.numpy()[0])
+        return distribution.sample().numpy()
 
-    def train(self) -> None:
+    def train(self, batch_size: int = None) -> None:
         steps_metrics = {"actor_nn_loss": [], "critic_nn_loss": [], "rewards": []}
         episode_metrics = {
             "steps": 0,
@@ -206,7 +205,9 @@ class AdvantageActorCritic(BaseOldAgent):
 
         episode_metrics["actor_nn_loss_avg"] = np.mean(steps_metrics["actor_nn_loss"])
         episode_metrics["critic_nn_loss_avg"] = np.mean(steps_metrics["critic_nn_loss"])
+        episode_metrics["actor_nn_loss_sum"] = np.sum(steps_metrics["actor_nn_loss"])
+        episode_metrics["critic_nn_loss_sum"] = np.sum(steps_metrics["critic_nn_loss"])
         episode_metrics["rewards_avg"] = np.mean(steps_metrics["rewards"])
         episode_metrics["rewards_sum"] = np.sum(steps_metrics["rewards"])
 
-        return episode_metrics, steps_metrics
+        return episode_metrics
