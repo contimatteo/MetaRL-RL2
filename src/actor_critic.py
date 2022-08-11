@@ -58,7 +58,7 @@ def run_agent(env, agent: A2C):
 
         agent.memory.reset()
 
-        while not done:
+        while not done and step < N_MAX_EPISODE_STEPS:
             step += 1
             action = int(agent.act(state)[0])
 
@@ -79,14 +79,14 @@ def run_agent(env, agent: A2C):
     #
 
     for episode_metrics in history:
-        a_loss_avg = episode_metrics["actor_nn_loss_avg"]
-        a_loss_sum = episode_metrics["actor_nn_loss_sum"]
-        c_loss_avg = episode_metrics["critic_nn_loss_avg"]
-        c_loss_sum = episode_metrics["critic_nn_loss_sum"]
-        rwd_avg = episode_metrics["rewards_avg"]
-        print(
-            "> A_loss_avg = {:.3f}, A_loss_sum = {:.3f} C_loss_avg = {:.3f}, C_loss_sum = {:.3f}, rwd_avg = {:.3f}"
-            .format(a_loss_avg, a_loss_sum, c_loss_avg, c_loss_sum, rwd_avg)
+        Al_avg = episode_metrics["actor_nn_loss_avg"]
+        Al_sum = episode_metrics["actor_nn_loss_sum"]
+        Cl_avg = episode_metrics["critic_nn_loss_avg"]
+        Cl_sum = episode_metrics["critic_nn_loss_sum"]
+        R_avg = episode_metrics["rewards_avg"]
+        logger.debug(
+            "> Al_avg = {:.3f}, Al_sum = {:.3f} Cl_avg = {:.3f}, Cl_sum = {:.3f}, R_avg = {:.3f}".
+            format(Al_avg, Al_sum, Cl_avg, Cl_sum, R_avg)
         )
 
     print("\n")
