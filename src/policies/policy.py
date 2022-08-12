@@ -36,6 +36,6 @@ class Policy(abc.ABC):
             ### reshape in order to match network `batch` dimension
             obs = np.expand_dims(obs, axis=0)  ### (x,) -> (1, x)
 
-        assert len(obs.shape) > 1  ### batch dimension is required
+        assert len(obs.shape) > 0  ### batch dimension is required
 
         return self._act(obs, mask=mask)

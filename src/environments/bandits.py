@@ -37,6 +37,7 @@ class BanditEnv(gym.Env):
         self.r_dist = r_dist
 
         self.info = info
+        self.obs = np.array([0])
         self.n_bandits = len(p_dist)
 
         self.action_space = spaces.Discrete(self.n_bandits)
@@ -54,11 +55,11 @@ class BanditEnv(gym.Env):
             else:
                 reward = np.random.normal(self.r_dist[action][0], self.r_dist[action][1])
 
-        return 0, reward, done, self.info
+        return self.obs, reward, done, self.info
 
-    def reset(self, seed: int = None):
+    def reset(self, seed: int = None, return_info: bool = False):
         super().seed(seed)
-        return 0, self.info
+        return (self.obs, self.info) if return_info else self.obs
 
     def render(self, mode='human', close=False):
         pass

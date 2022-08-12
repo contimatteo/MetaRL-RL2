@@ -11,15 +11,15 @@ from networks.layers import AC_EncoderLayer, AC_BackboneLayer
 ###
 
 
-def ActorCriticNetworks(obs_space: gym.Space, action_space: gym.Space) -> Tuple[Model, Model]:
+def MetaActorCriticNetworks(obs_space: gym.Space, action_space: gym.Space) -> Tuple[Model, Model]:
     ### TODO: support also 'continuous' action space
     assert isinstance(action_space, gym.spaces.discrete.Discrete)
     discrete = True
 
-    input_shape = obs_space.shape
-
     ### input
-    l_input = Input(shape=input_shape)
+    l_state_input = Input(shape=obs_space.shape)
+    l_prev_action_input = Input(shape=(1, ))
+    l_prev_reward_input = Input(shape=(1, ))
     ### encoder
     l_encoder = AC_EncoderLayer()
     ### backbone
@@ -30,14 +30,21 @@ def ActorCriticNetworks(obs_space: gym.Space, action_space: gym.Space) -> Tuple[
 
     #
 
-    out_encoder = l_encoder(l_input)
+    out_encoder = l_encoder(l_state_input)
     out_backbone = l_shared_backbone(out_encoder)
     out_actor = l_actor_head(out_backbone)
     out_critic = l_critic_head(out_backbone)
 
     #
 
-    Actor = Model(inputs=l_input, outputs=out_actor)
-    Critic = Model(inputs=l_input, outputs=out_critic)
+    Actor = Model(
+        inputs=[l_state_input, l_prev_action_input, l_prev_reward_input],
+        outputs=out_actor,
+    )
+
+    Critic = Model(
+        inputs=l_state_input,
+        outputs=out_critic,
+    )
 
     return Actor, Critic
