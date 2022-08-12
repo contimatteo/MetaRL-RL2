@@ -50,7 +50,11 @@ def C_HeadLayer() -> Callable[[tf.Tensor], Layer]:
 ###
 
 
-def ActorCriticNetworks(obs_space: gym.Space, actions_space: gym.Space) -> Tuple[Model, Model]:
+def ActorCriticNetworks(obs_space: gym.Space, action_space: gym.Space) -> Tuple[Model, Model]:
+    ### TODO: support also 'continuous' action space
+    assert isinstance(action_space, gym.spaces.discrete.Discrete)
+    discrete = True
+
     input_shape = obs_space.shape
 
     ### input
@@ -60,7 +64,7 @@ def ActorCriticNetworks(obs_space: gym.Space, actions_space: gym.Space) -> Tuple
     ### backbone
     l_shared_backbone = AC_BackboneLayer()
     ### head
-    l_actor_head = A_HeadLayer(actions_space.n, discrete=True)
+    l_actor_head = A_HeadLayer(action_space.n, discrete=discrete)
     l_critic_head = C_HeadLayer()
 
     #
