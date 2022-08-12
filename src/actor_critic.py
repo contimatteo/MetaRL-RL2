@@ -22,7 +22,7 @@ ENV_RENDER = False
 # ENV_NAME = "CartPole-v1"
 ENV_NAME = "LunarLander-v2"
 
-N_EPISODES = 25
+N_EPISODES = 10
 N_MAX_EPISODE_STEPS = 200
 N_EPISODE_STEP_SECONDS_DELAY = .3
 
@@ -115,8 +115,6 @@ def main():
         critic_network=a2c_critic_network
     )
 
-    run_agent(env, a2c)
-
     #
 
     a3c_actor_network = ActorNetwork(n_actions=env.action_space.n)
@@ -133,6 +131,9 @@ def main():
         critic_network=a3c_critic_network
     )
 
+    #
+
+    # run_agent(env, a2c)
     run_agent(env, a3c)
 
 
