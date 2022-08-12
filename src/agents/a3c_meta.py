@@ -1,7 +1,9 @@
-from typing import Any
+from typing import Any, List
 
 import numpy as np
 import tensorflow as tf
+
+from tensorflow.python.keras.layers import LSTM
 
 from .a3c import A3C
 
@@ -13,6 +15,23 @@ class A3CMeta(A3C):
     @property
     def name(self) -> str:
         return "MetaA3C"
+
+    @property
+    def meta_memory_layer(self) -> LSTM:
+        memory_layer = self.actor_network.get_layer(name='MetaMemoryLayer')
+        assert memory_layer is not None
+        return memory_layer
+
+    def get_meta_memory_layer_states(self) -> List[tf.Tensor]:
+        return self.meta_memory_layer.states
+
+    def set_meta_memory_layer_states(self, states: List[tf.Tensor]) -> None:
+        # self.meta_memory_layer._states = states
+        # self.meta_memory_layer.states(states)
+        self.meta_memory_layer.reset_states(states)
+
+    def reset_memory_layer_states(self) -> None:
+        self.meta_memory_layer.reset_states()
 
     #
 
@@ -60,14 +79,21 @@ class A3CMeta(A3C):
             "rewards_sum": 0,
         }
 
-        #
-
         ep_data = self.memory.to_tf_dataset()
+
+        ## v1
+        # ep_data_batches = ep_data.batch(batch_size, drop_remainder=True)
+        ## v2
+        ep_data_batches = ep_data.batch(batch_size)
+        ep_data_batches = ep_data_batches.shuffle(ep_data_batches.cardinality()).unbatch()
+        ep_data_batches = ep_data_batches.batch(batch_size, drop_remainder=True)
+
+        #
 
         prev_batch_last_action = 0
         prev_batch_last_reward = 0
 
-        for ep_data_batch in ep_data.batch(batch_size):
+        for ep_data_batch in ep_data_batches:
             _states: np.ndarray = ep_data_batch["states"]
             _rewards: np.ndarray = ep_data_batch["rewards"]
             _actions: np.ndarray = ep_data_batch["actions"]
@@ -94,12 +120,15 @@ class A3CMeta(A3C):
 
             #
 
-            ### TODO: reset MetaLayer (RNN) hidden states
-
             with tf.GradientTape() as tape1, tf.GradientTape() as tape2:
                 actions_probs = self.actor_network(meta_trajectories, training=True)
-                state_values = self.critic_network(_states, training=True)
-                next_state_values = self.critic_network(_next_states, training=True)
+                state_values = self.critic_network(meta_trajectories, training=True)
+
+                ### ISSUE: how we handle the `trajectories` for the `_next_states`?
+                ### NB: `next_state_values` are required for computing actions `advantage_estimates`
+                # next_state_values = self.critic_network(_next_states, training=True)
+                bootstrap_value = 0.  ### FIXME: how can we derive this?
+                next_state_values = state_values + bootstrap_value
 
                 state_values = tf.reshape(state_values, (len(state_values)))
                 next_state_values = tf.reshape(next_state_values, (len(next_state_values)))

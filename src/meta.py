@@ -14,22 +14,22 @@ from progress.bar import Bar
 from agents import A3C, A3CMeta
 from environments import BanditEnv
 from networks import MetaActorCriticNetworks
-from policies import NetworkMetaPolicy
+from policies import RandomMetaPolicy, NetworkMetaPolicy
 
 ###
 
 RANDOM_SEED = 666
 
+TRAIN_BATCH_SIZE = 8
+
 N_TRIALS = 2
 N_EPISODES = 5
-N_MAX_EPISODE_STEPS = 100
-
-TRAIN_BATCH_SIZE = 8
+N_MAX_EPISODE_STEPS = 500
 
 ###
 
 
-def run_agent(envs: List[gym.Env], agent: A3C):
+def run_agent(envs: List[gym.Env], agent: A3CMeta):
     random.seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
     tf.random.set_seed(RANDOM_SEED)
@@ -46,8 +46,29 @@ def run_agent(envs: List[gym.Env], agent: A3C):
 
         ep_progbar = Bar(f"TRIAL {trial} -> Episodes ...", max=N_EPISODES)
 
-        for _ in range(N_EPISODES):
+        #
+
+        meta_memory_states = None
+
+        ### INFO: after each trial, we have to reset the RNN hidden states
+        agent.reset_memory_layer_states()
+
+        #
+
+        for episode in range(N_EPISODES):
             agent.memory.reset()
+
+            ### INFO: each episode has a finite number of batches.
+            ### My guess is that despite the `LSTM` `stateful` parameter, after the completion of
+            ### the training on a finite number of batches (generated from a single episode) the
+            ### `LSTM` does not preserve the values of its `states`.
+            ### For the reason explained above, I'm going to save after each episode the values of
+            ### the `LSTM.states` and then I pre-load these ones before the following episode.
+            assert (episode > 0) or (episode == 0 and meta_memory_states is None)
+            assert (episode < 1) or (episode > 0 and meta_memory_states is not None)
+            if meta_memory_states is not None:
+                ### this is not the first episode of the current trial
+                agent.set_meta_memory_layer_states(meta_memory_states)
 
             step = 0
             done = False
@@ -69,10 +90,16 @@ def run_agent(envs: List[gym.Env], agent: A3C):
                 agent.remember(step, state, action, reward, next_state, done)
                 state = next_state
 
+            ### TRAIN
             episode_metrics = agent.train(batch_size=TRAIN_BATCH_SIZE)
-            history.append(episode_metrics)
 
+            ### INFO: persist
+            meta_memory_states = agent.get_meta_memory_layer_states()
+
+            history.append(episode_metrics)
             ep_progbar.next()
+
+        #
 
         ep_progbar.finish()
 
@@ -107,8 +134,6 @@ def main():
         # BanditEnv(p_dist=[0.5, 0.5], r_dist=[1, 1]),
         # BanditEnv(p_dist=[0.9, 0.1], r_dist=[1, 1]),
         gym.make("LunarLander-v2"),
-        # gym.make("LunarLander-v2"),
-        # gym.make("LunarLander-v2"),
     ]
 
     observation_space = envs[0].observation_space
@@ -116,11 +141,14 @@ def main():
 
     #
 
-    actor_network, critic_network = MetaActorCriticNetworks(observation_space, action_space)
-
-    policy = NetworkMetaPolicy(
-        state_space=observation_space, action_space=action_space, network=actor_network
+    actor_network, critic_network = MetaActorCriticNetworks(
+        observation_space, action_space, TRAIN_BATCH_SIZE
     )
+
+    policy = RandomMetaPolicy(state_space=observation_space, action_space=action_space)
+    # policy = NetworkMetaPolicy(
+    #     state_space=observation_space, action_space=action_space, network=actor_network
+    # )
 
     # batch_size = 5
     # states = np.random.rand(batch_size, observation_space.shape[0])

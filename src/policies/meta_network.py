@@ -7,7 +7,7 @@ import tensorflow_probability as tfp
 
 from tensorflow.python.keras import Model
 
-from .policy_meta import MetaPolicy
+from .meta_policy import MetaPolicy
 
 ###
 

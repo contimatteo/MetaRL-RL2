@@ -30,6 +30,9 @@ class Policy(abc.ABC):
     #
 
     def act(self, obs: np.ndarray, mask=None) -> np.ndarray:
+        print("")
+        print("obs =", type(obs), obs)
+        print("")
         assert isinstance(obs, np.ndarray)
 
         if len(obs.shape) == 1:
