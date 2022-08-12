@@ -32,8 +32,8 @@ class A3C(A2C):
         standardize_advantage_estimate: bool = True,
         critic_loss_coef: float = 0.5,
         opt_gradient_clip_norm: float = 0.25,
-        opt_actor_lr: float = 1e-4,
-        opt_critic_lr: float = 1e-4,
+        opt_actor_lr: float = 5e-4,
+        opt_critic_lr: float = 5e-4,
         entropy_loss_coef: float = 1e-3,
         gae_lambda: float = 0.9,
     ) -> None:
