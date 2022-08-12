@@ -97,7 +97,6 @@ class A3C(A2C):
             policy_losses.append(policy_loss)
             ### Entropy
             entropy_loss = tf.math.multiply(step_actions_probs, distribution.log_prob(action_taken))
-            # entropy_loss = tf.math.negative(entropy_loss) ### TODO: with/without ?
             entropy_losses.append(entropy_loss)
 
         def __batch_loss_reduction(batch_losses):
@@ -109,7 +108,11 @@ class A3C(A2C):
         policy_loss = __batch_loss_reduction(policy_losses)
 
         entropy_loss = __batch_loss_reduction(entropy_losses)
+        entropy_loss = tf.math.negative(entropy_loss)
         entropy_loss = tf.math.multiply(self._entropy_loss_coef, entropy_loss)
+
+        assert not tf.math.is_inf(policy_loss) and not tf.math.is_nan(policy_loss)
+        assert not tf.math.is_inf(entropy_loss) and not tf.math.is_nan(entropy_loss)
 
         ### the Actor loss is the "negative log-likelihood"
         return -policy_loss - entropy_loss
