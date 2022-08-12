@@ -4,11 +4,11 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 
+from tensorflow.python.keras import Model
 from tensorflow.python.keras.losses import mean_squared_error
 from tensorflow.python.keras.optimizers import adam_v2
 
 from policies import Policy
-from networks import ActorNetwork, CriticNetwork
 
 from .agent import Agent
 
@@ -23,8 +23,8 @@ class A2C(Agent):
         self,
         n_max_episode_steps: int,
         policy: Policy,
-        actor_network: ActorNetwork,
-        critic_network: CriticNetwork,
+        actor_network: Model,
+        critic_network: Model,
         gamma: float = 0.99,
         standardize_advantage_estimate: bool = True,
         critic_loss_coef: float = 0.5,

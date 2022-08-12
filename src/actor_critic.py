@@ -10,7 +10,7 @@ from loguru import logger
 from progress.bar import Bar
 
 from agents import A2C, A3C
-from networks import ActorNetwork, CriticNetwork, ActorCriticNetworks
+from networks import ActorCriticNetworks
 from policies import NetworkPolicy
 
 ###

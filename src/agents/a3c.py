@@ -4,8 +4,9 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
 
+from tensorflow.python.keras import Model
+
 from policies import Policy
-from networks import ActorNetwork, CriticNetwork
 
 from .a2c import A2C
 
@@ -25,8 +26,8 @@ class A3C(A2C):
         self,
         n_max_episode_steps: int,
         policy: Policy,
-        actor_network: ActorNetwork,
-        critic_network: CriticNetwork,
+        actor_network: Model,
+        critic_network: Model,
         gamma: float = 0.99,
         standardize_advantage_estimate: bool = True,
         critic_loss_coef: float = 0.5,
