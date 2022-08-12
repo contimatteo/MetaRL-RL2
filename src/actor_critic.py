@@ -10,7 +10,7 @@ from loguru import logger
 from progress.bar import Bar
 
 from agents import A2C, A3C
-from networks import ActorNetwork, CriticNetwork
+from networks import ActorNetwork, CriticNetwork, ActorCriticNetworks
 from policies import NetworkPolicy
 
 ###
@@ -101,24 +101,25 @@ def main():
 
     ###
 
-    a2c_actor_network = ActorNetwork(n_actions=env.action_space.n)
-    a2c_critic_network = CriticNetwork()
-
-    a2c_policy = NetworkPolicy(
-        state_space=state_space, action_space=action_space, network=a2c_actor_network
-    )
-
-    a2c = A2C(
-        n_max_episode_steps=N_MAX_EPISODE_STEPS,
-        policy=a2c_policy,
-        actor_network=a2c_actor_network,
-        critic_network=a2c_critic_network
-    )
+    # a2c_actor_network = ActorNetwork(n_actions=env.action_space.n)
+    # a2c_critic_network = CriticNetwork()
+    # a2c_policy = NetworkPolicy(
+    #     state_space=state_space, action_space=action_space, network=a2c_actor_network
+    # )
+    # a2c = A2C(
+    #     n_max_episode_steps=N_MAX_EPISODE_STEPS,
+    #     policy=a2c_policy,
+    #     actor_network=a2c_actor_network,
+    #     critic_network=a2c_critic_network
+    # )
 
     #
 
-    a3c_actor_network = ActorNetwork(n_actions=env.action_space.n)
-    a3c_critic_network = CriticNetwork()
+    # a3c_actor_network = ActorNetwork(n_actions=env.action_space.n)
+    # a3c_critic_network = CriticNetwork()
+    a3c_actor_network, a3c_critic_network = ActorCriticNetworks(
+        env.observation_space, env.action_space
+    )
 
     a3c_policy = NetworkPolicy(
         state_space=state_space, action_space=action_space, network=a3c_actor_network
