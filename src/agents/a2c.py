@@ -133,7 +133,9 @@ class A2C(Agent):
         ep_data = self.memory.to_tf_dataset()
         ep_data_shuffled = ep_data.shuffle(ep_data.cardinality())
 
-        for ep_data_batch in ep_data_shuffled.batch(batch_size):
+        ### TODO: with or without shuffling?
+        # for ep_data_batch in ep_data_shuffled.batch(batch_size):
+        for ep_data_batch in ep_data.batch(batch_size):
             _states = ep_data_batch["states"]
             _rewards = ep_data_batch["rewards"]
             _actions = ep_data_batch["actions"]
