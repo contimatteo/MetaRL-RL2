@@ -23,8 +23,8 @@ RANDOM_SEED = 666
 TRAIN_BATCH_SIZE = 8
 
 N_TRIALS = 2
-N_EPISODES = 2
-N_MAX_EPISODE_STEPS = 250
+N_EPISODES = 5
+N_MAX_EPISODE_STEPS = 400
 
 ###
 
@@ -150,26 +150,12 @@ def main():
     #     state_space=observation_space, action_space=action_space, network=actor_network
     # )
 
-    # batch_size = 5
-    # states = np.random.rand(batch_size, observation_space.shape[0])
-    # prev_rewards = np.full((batch_size), -1)
-    # prev_actions = np.full((batch_size), 1)
-    # print("")
-    # print("")
-    # states = np.random.rand(observation_space.shape[0])
-    # prev_rewards = -1.
-    # prev_actions = -1.
-    # trajectory = [states, prev_rewards, prev_actions]
-    # probs = policy.act(trajectory)
-    # print("probs =", probs.shape)
-    # print("")
-    # print("")
-
     meta = A3CMeta(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
         policy=policy,
         actor_network=actor_network,
-        critic_network=critic_network
+        critic_network=critic_network,
+        opt_gradient_clip_norm=999.0  # 0.25
     )
 
     #

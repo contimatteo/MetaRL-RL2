@@ -32,8 +32,8 @@ class A3C(A2C):
         standardize_advantage_estimate: bool = True,
         critic_loss_coef: float = 0.5,
         opt_gradient_clip_norm: Optional[float] = None,  # 0.25,
-        opt_actor_lr: float = 1e-4,
-        opt_critic_lr: float = 1e-4,
+        opt_actor_lr: float = 5e-5,
+        opt_critic_lr: float = 5e-5,
         entropy_loss_coef: float = 1e-3,
         gae_lambda: float = 0.9,
     ) -> None:
@@ -78,9 +78,14 @@ class A3C(A2C):
             delta = rewards[t] + (gamma * not_dones[t] * next_state_v[t]) - state_v[t]
             advantages[t] = delta + (gamma * gae_lambda * advantages[t + 1] * not_dones[t])
 
+        returns = tf.convert_to_tensor(advantages + state_v, dtype=tf.float32)
         advantages = tf.convert_to_tensor(advantages, dtype=tf.float32)
 
-        return self._standardize_advantage_estimates(advantages)
+        advantages = self._standardize_advantage_estimates(advantages)
+
+        ### TODO: with or without this tensor?
+        # return tf.stop_gradient(returns), tf.stop_gradient(advantages)
+        return tf.stop_gradient(advantages)
 
     def _actor_network_loss(self, actions_probs: Any, actions: Any, action_advantages: Any):
         entropy_losses = []

@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -36,19 +36,17 @@ class A3CMeta(A3C):
     #
 
     def _meta_trajectories(
-        self, states: tf.Tensor, actions: tf.Tensor, rewards: tf.Tensor,
+        self, states: tf.Tensor, next_states: tf.Tensor, actions: tf.Tensor, rewards: tf.Tensor,
         prev_batch_last_action: Any, prev_batch_last_reward: Any
-    ) -> list:
+    ) -> Tuple[list, list]:
         prev_actions = actions.numpy().copy()
         prev_rewards = rewards.numpy().copy()
 
         prev_actions = np.insert(prev_actions[:-1], 0, prev_batch_last_action)
         prev_rewards = np.insert(prev_rewards[:-1], 0, prev_batch_last_reward)
 
-        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-        # INFO: we cannot convert {actions} to one-hot encoding, because we have to support also NOT discrete spaces
+        # INFO: we cannot convert {actions} to one-hot (encoding) because we have also NOT Discrete spaces
         # prev_actions = tf.one_hot(prev_actions, self.n_actions)
-        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
         prev_rewards = tf.constant(prev_rewards)
         ### `actions` in discrete space are `int` but `keras.Model` takes only `float`
@@ -56,12 +54,10 @@ class A3CMeta(A3C):
 
         assert states.shape[0] == prev_actions.shape[0] == prev_rewards.shape[0]
 
-        # prev_actions = tf.expand_dims(prev_actions, axis=1)  ### (x,) -> (x, 1)
-        # prev_rewards = tf.expand_dims(prev_rewards, axis=1)  ### (x,) -> (x, 1)
-        # trajectories = tf.stack([states, prev_actions, prev_rewards])
         trajectories = [states, prev_actions, prev_rewards]
+        next_trajectories = [next_states, actions, rewards]
 
-        return trajectories
+        return trajectories, next_trajectories
 
     #
 
@@ -107,13 +103,16 @@ class A3CMeta(A3C):
             assert _states.shape[0] == _disc_rewards.shape[0] == _actions.shape[0]
             assert _states.shape[0] == _next_states.shape[0] == _done.shape[0]
 
-            meta_trajectories = self._meta_trajectories(
-                _states, _actions, _rewards, prev_batch_last_action, prev_batch_last_reward
+            meta_trajectories, meta_next_trajectories = self._meta_trajectories(
+                _states, _next_states, _actions, _rewards, prev_batch_last_action,
+                prev_batch_last_reward
             )
 
-            ### assert that all elements of the trajectory have the same batch_size dimension
+            ### assert that all elements of the trajectories have the same batch_size dimension
             for i in range(len(meta_trajectories) - 1):
+                assert meta_trajectories[i].shape[0] == meta_next_trajectories[i].shape[0]
                 assert meta_trajectories[i].shape[0] == meta_trajectories[i + 1].shape[0]
+                assert meta_next_trajectories[i].shape[0] == meta_next_trajectories[i + 1].shape[0]
 
             prev_batch_last_action = _actions[-1]
             prev_batch_last_reward = _rewards[-1]
@@ -126,9 +125,9 @@ class A3CMeta(A3C):
 
                 ### ISSUE: how we handle the `trajectories` for the `_next_states`?
                 ### NB: `next_state_values` are required for computing actions `advantage_estimates`
-                # next_state_values = self.critic_network(_next_states, training=True)
                 bootstrap_value = 0.  ### FIXME: how can we derive this?
                 next_state_values = state_values + bootstrap_value
+                # next_state_values = self.critic_network(meta_next_trajectories, training=True)
 
                 state_values = tf.reshape(state_values, (len(state_values)))
                 next_state_values = tf.reshape(next_state_values, (len(next_state_values)))

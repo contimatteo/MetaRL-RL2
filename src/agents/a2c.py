@@ -29,8 +29,8 @@ class A2C(Agent):
         standardize_advantage_estimate: bool = True,
         critic_loss_coef: float = 0.5,
         opt_gradient_clip_norm: Optional[float] = None,  # 0.25,
-        opt_actor_lr: float = 1e-4,
-        opt_critic_lr: float = 1e-4,
+        opt_actor_lr: float = 5e-5,
+        opt_critic_lr: float = 5e-5,
     ) -> None:
         super(A2C, self).__init__(n_max_episode_steps=n_max_episode_steps, policy=policy)
 
@@ -77,7 +77,14 @@ class A2C(Agent):
         _advantages_expr2 = tf.math.multiply(self._gamma, next_state_v)  ### γVφ(s′)
         advantages = _advantages_expr1 + _advantages_expr2
 
-        return self._standardize_advantage_estimates(advantages)
+        returns = tf.convert_to_tensor(advantages + state_v, dtype=tf.float32)
+        advantages = tf.convert_to_tensor(advantages, dtype=tf.float32)
+
+        advantages = self._standardize_advantage_estimates(advantages)
+
+        ### TODO: with or without this tensor?
+        # return tf.stop_gradient(returns), tf.stop_gradient(advantages)
+        return tf.stop_gradient(advantages)
 
     def _standardize_advantage_estimates(self, advantages: Any) -> Any:
         if not self._standardize_advantage_estimate:
@@ -131,11 +138,11 @@ class A2C(Agent):
         #
 
         ep_data = self.memory.to_tf_dataset()
-
         ### TODO: with or without shuffling?
-        # ep_data_shuffled = ep_data.shuffle(ep_data.cardinality())
-        # for ep_data_batch in ep_data_shuffled.batch(batch_size):
-        for ep_data_batch in ep_data.batch(batch_size):
+        # ep_data = ep_data.shuffle(ep_data.cardinality())
+        ep_data_batches = ep_data.batch(batch_size)
+
+        for ep_data_batch in ep_data_batches:
             _states = ep_data_batch["states"]
             _rewards = ep_data_batch["rewards"]
             _actions = ep_data_batch["actions"]
