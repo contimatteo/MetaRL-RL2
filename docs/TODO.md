@@ -22,3 +22,5 @@
  [ ] Action Advantage (Estimates): with or without the `returns` tensor?
  
  [ ] Understand the correct order of `training` procedure respect to the `shuffle` operation
+
+ [ ] use `PolynomialDecay` class for learning rate
