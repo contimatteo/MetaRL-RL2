@@ -17,6 +17,7 @@ loguru
 progress
 python-dotenv
 pyglet
+matplotlib
 swig
 wandb
 

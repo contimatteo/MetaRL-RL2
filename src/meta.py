@@ -3,9 +3,10 @@ from typing import List
 
 import utils.env_setup
 
-import random
 import gym
+import matplotlib.pyplot as plt
 import numpy as np
+import random
 import tensorflow as tf
 
 from loguru import logger
@@ -20,16 +21,17 @@ from environments import BanditTwoArmedDependentHard
 from networks import MetaActorCriticNetworks
 from policies import RandomMetaPolicy
 from policies import NetworkMetaPolicy
+from utils import PlotUtils
 
 ###
 
 RANDOM_SEED = 42
 
-TRAIN_BATCH_SIZE = 8
+TRAIN_BATCH_SIZE = 4
 
-N_TRIALS = 3
-N_EPISODES = 5
-N_MAX_EPISODE_STEPS = 20
+N_TRIALS = 10
+N_EPISODES = 1
+N_MAX_EPISODE_STEPS = 10
 
 ###
 
@@ -46,7 +48,7 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
     ### one requirement is that we should have at least 2 batches,
     ### otherwise we cannot update correctly the `meta-memory` states.
     assert N_MAX_EPISODE_STEPS > TRAIN_BATCH_SIZE
-    assert (N_MAX_EPISODE_STEPS % TRAIN_BATCH_SIZE) >= 2
+    assert (N_MAX_EPISODE_STEPS / TRAIN_BATCH_SIZE) >= 2
 
     history = []
 
@@ -104,20 +106,23 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
 
     #
 
-    print("\n")
+    # print("\n")
+    # for episode_metrics in history:
+    #     logger.debug(
+    #         "> Al_avg = {:.3f}, Cl_avg = {:.3f}, R_avg = {:.3f}, R_sum = {:.3f}".format(
+    #             episode_metrics["actor_nn_loss_avg"],
+    #             episode_metrics["critic_nn_loss_avg"],
+    #             episode_metrics["rewards_avg"],
+    #             episode_metrics["rewards_sum"],
+    #         )
+    #     )
+    # print("\n")
 
-    for episode_metrics in history:
-        Al_avg = episode_metrics["actor_nn_loss_avg"]
-        # Al_sum = episode_metrics["actor_nn_loss_sum"]
-        Cl_avg = episode_metrics["critic_nn_loss_avg"]
-        # Cl_sum = episode_metrics["critic_nn_loss_sum"]
-        R_avg = episode_metrics["rewards_avg"]
-        R_sum = episode_metrics["rewards_sum"]
-        logger.debug(
-            "> Al_avg = {:.3f}, Cl_avg = {:.3f}, R_avg = {:.3f}".format(Al_avg, Cl_avg, R_avg)
-        )
+    #
 
-    print("\n")
+    PlotUtils.model_training_overview(history)
+
+    plt.show()
 
 
 ###
@@ -129,17 +134,13 @@ def main():
     envs = [
         # gym.make("LunarLander-v2"),
         # BanditEnv(p_dist=[0.3, 0.7], r_dist=[0, 1]),
-        # BanditEnv(p_dist=[0.5, 0.5], r_dist=[1, 0]),
         # BanditEnv(p_dist=[0.9, 0.1], r_dist=[1, 0]),
         # BanditTwoArmedDependentEasy(),
-        # BanditTwoArmedDependentEasy(),
-        # BanditTwoArmedDependentEasy(),
         # BanditTwoArmedDependentMedium(),
         # BanditTwoArmedDependentMedium(),
-        # BanditTwoArmedDependentMedium(),
-        BanditTwoArmedDependentHard(),
-        BanditTwoArmedDependentHard(),
-        BanditTwoArmedDependentHard(),
+        # BanditTwoArmedDependentHard(),
+        BanditTwoArmedDependentEasy(),
+        BanditTwoArmedDependentEasy(),
     ]
 
     observation_space = envs[0].observation_space
