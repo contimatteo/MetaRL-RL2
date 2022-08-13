@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 import tensorflow as tf
@@ -28,9 +28,9 @@ class A2C(Agent):
         gamma: float = 0.99,
         standardize_advantage_estimate: bool = True,
         critic_loss_coef: float = 0.5,
-        opt_gradient_clip_norm: float = 0.25,
+        opt_gradient_clip_norm: Optional[float] = None,  # 0.25,
         opt_actor_lr: float = 1e-4,
-        opt_critic_lr: float = 5e-4,
+        opt_critic_lr: float = 1e-4,
     ) -> None:
         super(A2C, self).__init__(n_max_episode_steps=n_max_episode_steps, policy=policy)
 
@@ -168,8 +168,9 @@ class A2C(Agent):
             actor_grads = tape1.gradient(actor_loss, self.actor_network.trainable_variables)
             critic_grads = tape2.gradient(critic_loss, self.critic_network.trainable_variables)
 
-            actor_grads, _ = tf.clip_by_global_norm(actor_grads, self._opt_gradient_clip_norm)
-            critic_grads, _ = tf.clip_by_global_norm(critic_grads, self._opt_gradient_clip_norm)
+            if self._opt_gradient_clip_norm is not None:
+                actor_grads, _ = tf.clip_by_global_norm(actor_grads, self._opt_gradient_clip_norm)
+                critic_grads, _ = tf.clip_by_global_norm(critic_grads, self._opt_gradient_clip_norm)
 
             self.actor_network_optimizer.apply_gradients(
                 zip(actor_grads, self.actor_network.trainable_variables)

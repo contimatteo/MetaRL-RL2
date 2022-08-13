@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
 import tensorflow as tf
@@ -31,9 +31,9 @@ class A3C(A2C):
         gamma: float = 0.99,
         standardize_advantage_estimate: bool = True,
         critic_loss_coef: float = 0.5,
-        opt_gradient_clip_norm: float = 0.25,
-        opt_actor_lr: float = 5e-5,
-        opt_critic_lr: float = 5e-5,
+        opt_gradient_clip_norm: Optional[float] = None,  # 0.25,
+        opt_actor_lr: float = 1e-4,
+        opt_critic_lr: float = 1e-4,
         entropy_loss_coef: float = 1e-3,
         gae_lambda: float = 0.9,
     ) -> None:

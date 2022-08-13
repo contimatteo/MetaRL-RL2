@@ -145,8 +145,9 @@ class A3CMeta(A3C):
             actor_grads = tape1.gradient(actor_loss, self.actor_network.trainable_variables)
             critic_grads = tape2.gradient(critic_loss, self.critic_network.trainable_variables)
 
-            actor_grads, _ = tf.clip_by_global_norm(actor_grads, self._opt_gradient_clip_norm)
-            critic_grads, _ = tf.clip_by_global_norm(critic_grads, self._opt_gradient_clip_norm)
+            if self._opt_gradient_clip_norm is not None:
+                actor_grads, _ = tf.clip_by_global_norm(actor_grads, self._opt_gradient_clip_norm)
+                critic_grads, _ = tf.clip_by_global_norm(critic_grads, self._opt_gradient_clip_norm)
 
             self.actor_network_optimizer.apply_gradients(
                 zip(actor_grads, self.actor_network.trainable_variables)
