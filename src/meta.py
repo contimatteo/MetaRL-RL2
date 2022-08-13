@@ -1,58 +1,46 @@
 # pylint: disable=wrong-import-order, unused-import, consider-using-f-string
-from typing import Union
+from typing import List
 
 import utils.env_setup
 
+import random
 import gym
 import numpy as np
 import tensorflow as tf
 
 from loguru import logger
-from progress.bar import Bar, IncrementalBar
+from progress.bar import Bar
 
-from agents import MetaAgent
+from agents import A3C, A3CMeta
 from environments import BanditEnv
+from networks import MetaActorCriticNetworks
+from policies import RandomMetaPolicy, NetworkMetaPolicy
 
 ###
 
-RANDOM_SEED = 666
+RANDOM_SEED = 42
+
+TRAIN_BATCH_SIZE = 32
 
 N_TRIALS = 5
-N_EPISODES = 5
+N_EPISODES = 1
 N_MAX_EPISODE_STEPS = 100
 
 ###
 
 
-def __seed():
+def run_agent(envs: List[gym.Env], agent: A3CMeta):
+    random.seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
     tf.random.set_seed(RANDOM_SEED)
 
-
-# def __build_env(num_experiments: int, num_bandits: int):
-#     means = np.random.normal(size=(num_experiments, num_bandits))
-#     stdev = np.ones((num_experiments, num_bandits))
-#     return TwoArmedBanditsEnv(mean=means, stddev=stdev)
-
-###
-
-
-def main():
-    __seed()
-
-    ### AGENT
-
-    agent = MetaAgent(n_max_episode_steps=N_MAX_EPISODE_STEPS)
-
-    ### ENV
-
-    envs = [
-        BanditEnv(p_dist=[0.3, 0.7], r_dist=[1, 1]),
-        BanditEnv(p_dist=[0.5, 0.5], r_dist=[1, 1]),
-        BanditEnv(p_dist=[0.9, 0.1], r_dist=[1, 1]),
-    ]
+    tf.keras.backend.clear_session()
 
     ### TRAIN
+
+    ### one requirement is that we should have at least 2 batches,
+    ### otherwise we cannot update correctly the `meta-memory` states.
+    assert (N_MAX_EPISODE_STEPS % TRAIN_BATCH_SIZE) >= 2
 
     history = []
 
@@ -60,20 +48,37 @@ def main():
 
     for trial in range(N_TRIALS):
         env = envs[trial % len(envs)]
-        agent.sync_env(env)
+        agent.env_sync(env)
 
-        ep_progbar = Bar(f"TRIAL {trial} -> Episodes ...", max=N_EPISODES)
+        ep_progbar = Bar(f"TRIAL {trial+1} -> Episodes ...", max=N_EPISODES)
 
-        for _ in range(N_EPISODES):
-            agent.reset_memory()
+        #
+
+        ### INFO: after each trial, we have to reset the RNN hidden states
+        agent.reset_memory_layer_states()
+
+        #
+
+        for episode in range(N_EPISODES):
+            agent.memory.reset()
+
+            ### INFO: all episodes (except for the first one) must
+            ### have the `meta-memory` layer states initialized.
+            assert episode < 1 or agent.get_meta_memory_layer_states()[0] is not None
 
             step = 0
             done = False
-            state, _ = env.reset(seed=RANDOM_SEED)
+            next_state = None
+            state, _ = env.reset(seed=RANDOM_SEED, return_info=True)
+
+            prev_action = 0.
+            prev_reward = 0.
 
             while not done and step < N_MAX_EPISODE_STEPS:
                 step += 1
-                action = agent.act(state)
+
+                trajectory = [state, prev_action, prev_reward]
+                action = int(agent.act(trajectory)[0])
 
                 next_state, reward, done, _ = env.step(action)
                 # logger.debug(f" > step = {step}, action = {action}, reward = {reward}, done = {done}")
@@ -81,27 +86,73 @@ def main():
                 agent.remember(step, state, action, reward, next_state, done)
                 state = next_state
 
-            episode_metrics = agent.train()
-            history.append(episode_metrics)
+            ### TRAIN
+            episode_metrics = agent.train(batch_size=TRAIN_BATCH_SIZE)
 
+            history.append(episode_metrics)
             ep_progbar.next()
+
+        #
 
         ep_progbar.finish()
 
     #
 
-    # for episode_metrics in history:
-    #     act_loss = episode_metrics["actor_nn_loss_avg"]
-    #     crt_loss = episode_metrics["critic_nn_loss_avg"]
-    #     rewards_sum = episode_metrics["rewards_sum"]
-    #     rewards_avg = episode_metrics["rewards_avg"]
-    #     logger.debug(
-    #         "A_loss = {:.3f}, C_loss = {:.3f}, rwd_sum = {:.3f}, rwd_avg = {:.3f}".format(
-    #             act_loss, crt_loss, rewards_sum, rewards_avg
-    #         )
-    #     )
+    print("\n")
+
+    for episode_metrics in history:
+        Al_avg = episode_metrics["actor_nn_loss_avg"]
+        # Al_sum = episode_metrics["actor_nn_loss_sum"]
+        Cl_avg = episode_metrics["critic_nn_loss_avg"]
+        # Cl_sum = episode_metrics["critic_nn_loss_sum"]
+        R_avg = episode_metrics["rewards_avg"]
+        R_sum = episode_metrics["rewards_sum"]
+        logger.debug(
+            "> Al_avg = {:.3f}, Cl_avg = {:.3f}, R_avg = {:.3f}".format(Al_avg, Cl_avg, R_avg)
+        )
 
     print("\n")
+
+
+###
+
+
+def main():
+    ### ENV
+
+    envs = [
+        BanditEnv(p_dist=[0.3, 0.7], r_dist=[1, 1]),
+        BanditEnv(p_dist=[0.5, 0.5], r_dist=[1, 1]),
+        BanditEnv(p_dist=[0.9, 0.1], r_dist=[1, 1]),
+        # gym.make("LunarLander-v2"),
+    ]
+
+    observation_space = envs[0].observation_space
+    action_space = envs[0].action_space
+
+    #
+
+    actor_network, critic_network, memory_network = MetaActorCriticNetworks(
+        observation_space, action_space, TRAIN_BATCH_SIZE
+    )
+
+    # policy = RandomMetaPolicy(state_space=observation_space, action_space=action_space)
+    policy = NetworkMetaPolicy(
+        state_space=observation_space, action_space=action_space, network=actor_network
+    )
+
+    meta = A3CMeta(
+        n_max_episode_steps=N_MAX_EPISODE_STEPS,
+        policy=policy,
+        actor_network=actor_network,
+        critic_network=critic_network,
+        memory_network=memory_network,
+        opt_gradient_clip_norm=0.5
+    )
+
+    #
+
+    run_agent(envs, meta)
 
 
 ###

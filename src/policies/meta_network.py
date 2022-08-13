@@ -1,5 +1,4 @@
 from typing import Any
-from enum import Enum
 
 import gym
 import numpy as np
@@ -8,7 +7,7 @@ import tensorflow_probability as tfp
 
 from tensorflow.python.keras import Model
 
-from .policy import Policy
+from .meta_policy import MetaPolicy
 
 ###
 
@@ -17,7 +16,7 @@ ACT_MODES = ['distribution', 'argmax']
 ###
 
 
-class NetworkPolicy(Policy):
+class NetworkMetaPolicy(MetaPolicy):
 
     def __init__(
         self,
@@ -33,8 +32,8 @@ class NetworkPolicy(Policy):
         self.policy_network = network
         self.action_sampling_mode = action_sampling_mode
 
-    def _act(self, obs: Any, **kwargs) -> np.ndarray:
-        act_probs = self.policy_network(obs, training=False).numpy()
+    def _act(self, trajectory: Any, **kwargs) -> np.ndarray:
+        act_probs = self.policy_network(trajectory, training=False).numpy()
 
         if self.action_sampling_mode == "distribution":
             distribution = tfp.distributions.Categorical(
@@ -42,7 +41,7 @@ class NetworkPolicy(Policy):
             )
 
             actions = distribution.sample().numpy()
-            assert actions.shape[0] == obs.shape[0]
+            assert actions.shape[0] == trajectory[0].shape[0]
 
             return actions
 

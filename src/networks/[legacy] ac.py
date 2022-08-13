@@ -1,7 +1,10 @@
-from typing import Any
+from typing import Any, Tuple, Callable
+
+import gym
+import tensorflow as tf
 
 from tensorflow.python.keras import Model
-from tensorflow.python.keras.layers import Dense, Flatten
+from tensorflow.python.keras.layers import Layer, Dense, Flatten, Input
 
 ###
 
