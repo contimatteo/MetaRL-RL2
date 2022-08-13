@@ -20,11 +20,11 @@ from policies import RandomMetaPolicy, NetworkMetaPolicy
 
 RANDOM_SEED = 666
 
-TRAIN_BATCH_SIZE = 8
+TRAIN_BATCH_SIZE = 16
 
 N_TRIALS = 2
-N_EPISODES = 5
-N_MAX_EPISODE_STEPS = 100
+N_EPISODES = 4
+N_MAX_EPISODE_STEPS = 50
 
 ###
 
@@ -34,7 +34,13 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
     np.random.seed(RANDOM_SEED)
     tf.random.set_seed(RANDOM_SEED)
 
+    tf.keras.backend.clear_session()
+
     ### TRAIN
+
+    ### one requirement is that we should have at least 2 batches,
+    ### otherwise we cannot update correctly the `meta-memory` states.
+    assert (N_MAX_EPISODE_STEPS % TRAIN_BATCH_SIZE) >= 2
 
     history = []
 
