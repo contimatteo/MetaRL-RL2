@@ -30,7 +30,7 @@ class A2C(Agent):
         critic_loss_coef: float = 0.5,
         opt_gradient_clip_norm: Optional[float] = None,  # 0.25,
         opt_actor_lr: float = 1e-4,
-        opt_critic_lr: float = 1e-4,
+        opt_critic_lr: float = 5e-4,
     ) -> None:
         super(A2C, self).__init__(n_max_episode_steps=n_max_episode_steps, policy=policy)
 

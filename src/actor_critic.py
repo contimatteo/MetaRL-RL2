@@ -22,7 +22,7 @@ RANDOM_SEED = 666
 ENV_NAME = "LunarLander-v2"
 
 N_EPISODES = 10
-N_MAX_EPISODE_STEPS = 200
+N_MAX_EPISODE_STEPS = 400
 
 TRAIN_BATCH_SIZE = 8
 
@@ -123,7 +123,8 @@ def main():
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
         policy=a3c_policy,
         actor_network=a3c_actor_network,
-        critic_network=a3c_critic_network
+        critic_network=a3c_critic_network,
+        # opt_gradient_clip_norm=0.25
     )
 
     #
