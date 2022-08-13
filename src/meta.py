@@ -18,13 +18,13 @@ from policies import RandomMetaPolicy, NetworkMetaPolicy
 
 ###
 
-RANDOM_SEED = 666
+RANDOM_SEED = 42
 
-TRAIN_BATCH_SIZE = 16
+TRAIN_BATCH_SIZE = 32
 
-N_TRIALS = 2
-N_EPISODES = 4
-N_MAX_EPISODE_STEPS = 50
+N_TRIALS = 5
+N_EPISODES = 1
+N_MAX_EPISODE_STEPS = 100
 
 ###
 
@@ -50,7 +50,7 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
         env = envs[trial % len(envs)]
         agent.env_sync(env)
 
-        ep_progbar = Bar(f"TRIAL {trial} -> Episodes ...", max=N_EPISODES)
+        ep_progbar = Bar(f"TRIAL {trial+1} -> Episodes ...", max=N_EPISODES)
 
         #
 
@@ -108,9 +108,7 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
         R_avg = episode_metrics["rewards_avg"]
         R_sum = episode_metrics["rewards_sum"]
         logger.debug(
-            "> Al_avg = {:.3f}, Cl_avg = {:.3f}, R_avg = {:.3f}, R_sum = {:.3f}".format(
-                Al_avg, Cl_avg, R_avg, R_sum
-            )
+            "> Al_avg = {:.3f}, Cl_avg = {:.3f}, R_avg = {:.3f}".format(Al_avg, Cl_avg, R_avg)
         )
 
     print("\n")

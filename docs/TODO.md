@@ -12,7 +12,7 @@
         7. compute gradients
         8. apply gradients
  
- [ ] make the `meta-memory` Layer (LSTM) not `stateful`
+ [x] make the `meta-memory` Layer (LSTM) not `stateful`
         1. set the `stateful` flag equal to `False`
         2. add to the network an additional outuput with the `LSTM` states
         3. `reset` the `LSTM` states before each iteration (which is the pair (episode, batch))
