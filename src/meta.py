@@ -22,9 +22,9 @@ RANDOM_SEED = 666
 
 TRAIN_BATCH_SIZE = 8
 
-N_TRIALS = 1
+N_TRIALS = 2
 N_EPISODES = 5
-N_MAX_EPISODE_STEPS = 400
+N_MAX_EPISODE_STEPS = 100
 
 ###
 
@@ -48,8 +48,6 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
 
         #
 
-        meta_memory_states = None
-
         ### INFO: after each trial, we have to reset the RNN hidden states
         agent.reset_memory_layer_states()
 
@@ -58,17 +56,9 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
         for episode in range(N_EPISODES):
             agent.memory.reset()
 
-            ### INFO: each episode has a finite number of batches.
-            ### My guess is that despite the `LSTM` `stateful` parameter, after the completion of
-            ### the training on a finite number of batches (generated from a single episode) the
-            ### `LSTM` does not preserve the values of its `states`.
-            ### For the reason explained above, I'm going to save after each episode the values of
-            ### the `LSTM.states` and then I pre-load these ones before the following episode.
-            assert (episode > 0) or (episode == 0 and meta_memory_states is None)
-            assert (episode < 1) or (episode > 0 and meta_memory_states is not None)
-            if meta_memory_states is not None:
-                ### this is not the first episode of the current trial
-                agent.set_meta_memory_layer_states(meta_memory_states)
+            ### INFO: all episodes (except for the first one) must
+            ### have the `meta-memory` layer states initialized.
+            assert episode < 1 or agent.get_meta_memory_layer_states()[0] is not None
 
             step = 0
             done = False
@@ -81,7 +71,7 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
             while not done and step < N_MAX_EPISODE_STEPS:
                 step += 1
 
-                trajectory = [np.array(state), prev_action, prev_reward]
+                trajectory = [state, prev_action, prev_reward]
                 action = int(agent.act(trajectory)[0])
 
                 next_state, reward, done, _ = env.step(action)
@@ -92,9 +82,6 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
 
             ### TRAIN
             episode_metrics = agent.train(batch_size=TRAIN_BATCH_SIZE)
-
-            ### INFO: persist
-            meta_memory_states = agent.get_meta_memory_layer_states()
 
             history.append(episode_metrics)
             ep_progbar.next()
@@ -145,10 +132,10 @@ def main():
         observation_space, action_space, TRAIN_BATCH_SIZE
     )
 
-    policy = RandomMetaPolicy(state_space=observation_space, action_space=action_space)
-    # policy = NetworkMetaPolicy(
-    #     state_space=observation_space, action_space=action_space, network=actor_network
-    # )
+    # policy = RandomMetaPolicy(state_space=observation_space, action_space=action_space)
+    policy = NetworkMetaPolicy(
+        state_space=observation_space, action_space=action_space, network=actor_network
+    )
 
     meta = A3CMeta(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,

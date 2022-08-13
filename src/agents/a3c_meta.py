@@ -62,10 +62,16 @@ class A3CMeta(A3C):
         return self.meta_memory_layer.states
 
     def set_meta_memory_layer_states(self, states: List[tf.Tensor]) -> None:
-        self.meta_memory_layer.reset_states(states)
+        assert isinstance(states, list)
+        assert states[0] is not None and states[1] is not None
+        # self.meta_memory_layer.reset_states(states)
+        self.meta_memory_layer.states = states
 
     def reset_memory_layer_states(self) -> None:
-        self.meta_memory_layer.reset_states()
+        # states = self.get_meta_memory_layer_states()
+        # assert isinstance(states, list)
+        # assert states[0] is not None and states[1] is not None
+        self.meta_memory_layer.states = [None, None]
 
     #
 
@@ -120,10 +126,15 @@ class A3CMeta(A3C):
 
         #
 
+        batch_index = -1
         prev_batch_last_action = 0
         prev_batch_last_reward = 0
 
+        prev_meta_memory_states = self.get_meta_memory_layer_states()
+
         for ep_data_batch in ep_data_batches:
+            batch_index += 1
+
             _states: np.ndarray = ep_data_batch["states"]
             _rewards: np.ndarray = ep_data_batch["rewards"]
             _actions: np.ndarray = ep_data_batch["actions"]
@@ -136,6 +147,8 @@ class A3CMeta(A3C):
 
             assert _states.shape[0] == _disc_rewards.shape[0] == _actions.shape[0]
             assert _states.shape[0] == _next_states.shape[0] == _done.shape[0]
+            assert batch_index < 1 or prev_meta_memory_states[0] is not None
+            assert batch_index < 1 or prev_meta_memory_states[1] is not None
 
             meta_trajectories, meta_next_trajectories = self._meta_trajectories(
                 _states, _next_states, _actions, _rewards, prev_batch_last_action,
@@ -153,9 +166,14 @@ class A3CMeta(A3C):
 
             #
 
+            ### INFO: persist `meta-memory` layer states across batches
+            if batch_index > 0:
+                self.set_meta_memory_layer_states(prev_meta_memory_states)
+
             with tf.GradientTape() as tape1, tf.GradientTape() as tape2:
                 actions_probs = self.actor_network(meta_trajectories, training=True)
                 state_values = self.critic_network(meta_trajectories, training=True)
+                prev_meta_memory_states = self.memory_network(meta_trajectories, training=False)
 
                 ### ISSUE: how we handle the `trajectories` for the `_next_states`?
                 ### NB: `next_state_values` are required for computing actions `advantage_estimates`
