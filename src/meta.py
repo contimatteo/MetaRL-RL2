@@ -155,7 +155,7 @@ def main():
         policy=policy,
         actor_network=actor_network,
         critic_network=critic_network,
-        opt_gradient_clip_norm=999.0  # 0.25
+        # opt_gradient_clip_norm=999.0  # 0.25
     )
 
     #

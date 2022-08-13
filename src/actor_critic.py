@@ -120,7 +120,7 @@ def main():
         policy=a3c_policy,
         actor_network=a3c_actor_network,
         critic_network=a3c_critic_network,
-        opt_gradient_clip_norm=999.0  # 0.25
+        # opt_gradient_clip_norm=999.0  # 0.25
     )
 
     #
