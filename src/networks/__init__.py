@@ -1,8 +1,5 @@
 ###
 
-from .ac_old import ActorNetwork
-from .ac_old import CriticNetwork
+from .ac import ActorCriticNetworks
 
-from .policy import PolicyNetwork
-
-from .value import ValueNetwork
+from .ac_meta import MetaActorCriticNetworks

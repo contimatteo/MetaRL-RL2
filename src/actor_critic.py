@@ -10,23 +10,21 @@ from loguru import logger
 from progress.bar import Bar
 
 from agents import A2C, A3C
-from networks import ActorNetwork, CriticNetwork
+from networks import ActorCriticNetworks
 from policies import NetworkPolicy
 
 ###
 
 RANDOM_SEED = 666
 
-ENV_RENDER = False
 # ENV_NAME = "MountainCar-v0"
 # ENV_NAME = "CartPole-v1"
 ENV_NAME = "LunarLander-v2"
 
-N_EPISODES = 25
-N_MAX_EPISODE_STEPS = 200
-N_EPISODE_STEP_SECONDS_DELAY = .3
+N_EPISODES = 10
+N_MAX_EPISODE_STEPS = 400
 
-BATCH_SIZE = 8
+TRAIN_BATCH_SIZE = 8
 
 ###
 
@@ -50,7 +48,6 @@ def run_agent(env, agent: A2C):
         next_state = None
 
         state, _ = env.reset(seed=RANDOM_SEED, return_info=True)
-        ENV_RENDER and env.render()
 
         agent.memory.reset()
 
@@ -59,13 +56,12 @@ def run_agent(env, agent: A2C):
             action = int(agent.act(state)[0])
 
             next_state, reward, done, _ = env.step(action)
-            ENV_RENDER and env.render()
             # logger.debug(f" > step = {step}, action = {action}, reward = {reward}, done = {done}")
 
             agent.remember(step, state, action, reward, next_state, done)
             state = next_state
 
-        episode_metrics = agent.train(batch_size=BATCH_SIZE)
+        episode_metrics = agent.train(batch_size=TRAIN_BATCH_SIZE)
         history.append(episode_metrics)
 
         progbar.next()
@@ -96,43 +92,40 @@ def run_agent(env, agent: A2C):
 def main():
     env = gym.make(ENV_NAME)
 
-    state_space = env.observation_space
+    observation_space = env.observation_space
     action_space = env.action_space
 
     ###
 
-    a2c_actor_network = ActorNetwork(n_actions=env.action_space.n)
-    a2c_critic_network = CriticNetwork()
-
+    a2c_actor_network, a2c_critic_network = ActorCriticNetworks(observation_space, action_space)
     a2c_policy = NetworkPolicy(
-        state_space=state_space, action_space=action_space, network=a2c_actor_network
+        state_space=observation_space, action_space=action_space, network=a2c_actor_network
     )
-
     a2c = A2C(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
         policy=a2c_policy,
         actor_network=a2c_actor_network,
-        critic_network=a2c_critic_network
+        critic_network=a2c_critic_network,
+        opt_gradient_clip_norm=999.0  # 0.25
     )
-
-    run_agent(env, a2c)
 
     #
 
-    a3c_actor_network = ActorNetwork(n_actions=env.action_space.n)
-    a3c_critic_network = CriticNetwork()
-
+    a3c_actor_network, a3c_critic_network = ActorCriticNetworks(observation_space, action_space)
     a3c_policy = NetworkPolicy(
-        state_space=state_space, action_space=action_space, network=a3c_actor_network
+        state_space=observation_space, action_space=action_space, network=a3c_actor_network
     )
-
     a3c = A3C(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
         policy=a3c_policy,
         actor_network=a3c_actor_network,
-        critic_network=a3c_critic_network
+        critic_network=a3c_critic_network,
+        # opt_gradient_clip_norm=999.0  # 0.25
     )
 
+    #
+
+    # run_agent(env, a2c)
     run_agent(env, a3c)
 
 
