@@ -11,20 +11,25 @@ import tensorflow as tf
 from loguru import logger
 from progress.bar import Bar
 
-from agents import A3C, A3CMeta
+from agents import A3C
+from agents import A3CMeta
 from environments import BanditEnv
+from environments import BanditTwoArmedDependentEasy
+from environments import BanditTwoArmedDependentMedium
+from environments import BanditTwoArmedDependentHard
 from networks import MetaActorCriticNetworks
-from policies import RandomMetaPolicy, NetworkMetaPolicy
+from policies import RandomMetaPolicy
+from policies import NetworkMetaPolicy
 
 ###
 
 RANDOM_SEED = 42
 
-TRAIN_BATCH_SIZE = 32
+TRAIN_BATCH_SIZE = 8
 
-N_TRIALS = 5
-N_EPISODES = 1
-N_MAX_EPISODE_STEPS = 100
+N_TRIALS = 3
+N_EPISODES = 5
+N_MAX_EPISODE_STEPS = 20
 
 ###
 
@@ -40,6 +45,7 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
 
     ### one requirement is that we should have at least 2 batches,
     ### otherwise we cannot update correctly the `meta-memory` states.
+    assert N_MAX_EPISODE_STEPS > TRAIN_BATCH_SIZE
     assert (N_MAX_EPISODE_STEPS % TRAIN_BATCH_SIZE) >= 2
 
     history = []
@@ -50,7 +56,7 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
         env = envs[trial % len(envs)]
         agent.env_sync(env)
 
-        ep_progbar = Bar(f"TRIAL {trial+1} -> Episodes ...", max=N_EPISODES)
+        ep_progbar = Bar(f"TRIAL {trial+1:02} -> Episodes ...", max=N_EPISODES)
 
         #
 
@@ -121,10 +127,19 @@ def main():
     ### ENV
 
     envs = [
-        BanditEnv(p_dist=[0.3, 0.7], r_dist=[1, 1]),
-        BanditEnv(p_dist=[0.5, 0.5], r_dist=[1, 1]),
-        BanditEnv(p_dist=[0.9, 0.1], r_dist=[1, 1]),
         # gym.make("LunarLander-v2"),
+        # BanditEnv(p_dist=[0.3, 0.7], r_dist=[0, 1]),
+        # BanditEnv(p_dist=[0.5, 0.5], r_dist=[1, 0]),
+        # BanditEnv(p_dist=[0.9, 0.1], r_dist=[1, 0]),
+        # BanditTwoArmedDependentEasy(),
+        # BanditTwoArmedDependentEasy(),
+        # BanditTwoArmedDependentEasy(),
+        # BanditTwoArmedDependentMedium(),
+        # BanditTwoArmedDependentMedium(),
+        # BanditTwoArmedDependentMedium(),
+        BanditTwoArmedDependentHard(),
+        BanditTwoArmedDependentHard(),
+        BanditTwoArmedDependentHard(),
     ]
 
     observation_space = envs[0].observation_space
