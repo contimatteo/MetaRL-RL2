@@ -26,7 +26,7 @@ def MetaActorCriticNetworks(obs_space: gym.Space, action_space: gym.Space,
     ### encoder
     l_encoder = AC_EncoderLayer()
     ### meta-memory
-    l_memory = AC_MetaMemoryLayer(name="MetaMemoryLayer")
+    l_memory = AC_MetaMemoryLayer(name="MetaMemory")
     ### backbone
     l_shared_backbone = AC_BackboneLayer()
     ### head
@@ -41,7 +41,7 @@ def MetaActorCriticNetworks(obs_space: gym.Space, action_space: gym.Space,
     ### memory
     out_encoder_flat = Flatten()(out_encoder)
     input_memory = Concatenate()([out_encoder_flat, input_prev_action, input_prev_reward])
-    out_memory, _ = l_memory(input_memory)
+    out_memory, out_memory_states = l_memory(input_memory)
 
     ### backbone
     out_backbone = l_shared_backbone(out_memory)
@@ -62,4 +62,9 @@ def MetaActorCriticNetworks(obs_space: gym.Space, action_space: gym.Space,
         outputs=out_critic,
     )
 
-    return Actor, Critic
+    MetaMemory = Model(
+        inputs=[input_obs, input_prev_action, input_prev_reward],
+        outputs=out_memory_states,
+    )
+
+    return Actor, Critic, MetaMemory

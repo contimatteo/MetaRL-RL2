@@ -22,7 +22,7 @@ RANDOM_SEED = 666
 
 TRAIN_BATCH_SIZE = 8
 
-N_TRIALS = 2
+N_TRIALS = 1
 N_EPISODES = 5
 N_MAX_EPISODE_STEPS = 400
 
@@ -130,10 +130,10 @@ def main():
     ### ENV
 
     envs = [
-        # BanditEnv(p_dist=[0.3, 0.7], r_dist=[1, 1]),
-        # BanditEnv(p_dist=[0.5, 0.5], r_dist=[1, 1]),
-        # BanditEnv(p_dist=[0.9, 0.1], r_dist=[1, 1]),
-        gym.make("LunarLander-v2"),
+        BanditEnv(p_dist=[0.3, 0.7], r_dist=[1, 1]),
+        BanditEnv(p_dist=[0.5, 0.5], r_dist=[1, 1]),
+        BanditEnv(p_dist=[0.9, 0.1], r_dist=[1, 1]),
+        # gym.make("LunarLander-v2"),
     ]
 
     observation_space = envs[0].observation_space
@@ -141,7 +141,7 @@ def main():
 
     #
 
-    actor_network, critic_network = MetaActorCriticNetworks(
+    actor_network, critic_network, memory_network = MetaActorCriticNetworks(
         observation_space, action_space, TRAIN_BATCH_SIZE
     )
 
@@ -155,7 +155,8 @@ def main():
         policy=policy,
         actor_network=actor_network,
         critic_network=critic_network,
-        # opt_gradient_clip_norm=999.0  # 0.25
+        memory_network=memory_network,
+        opt_gradient_clip_norm=0.5
     )
 
     #

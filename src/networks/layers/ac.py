@@ -1,3 +1,4 @@
+from tkinter import X
 from typing import Callable, Tuple, List
 
 import tensorflow as tf
@@ -32,7 +33,8 @@ def A_HeadLayer(n_actions: int, discrete: bool) -> Callable[[tf.Tensor], Layer]:
     activation = "softmax" if discrete else "linear"
 
     def head(input_x: tf.Tensor) -> tf.Tensor:
-        x = Dense(n_actions, activation=activation, kernel_initializer='he_uniform')(input_x)
+        x = Dense(512, activation="relu", kernel_initializer='he_uniform')(input_x)
+        x = Dense(n_actions, activation=activation, kernel_initializer='he_uniform')(x)
         return x
 
     return head
@@ -41,7 +43,8 @@ def A_HeadLayer(n_actions: int, discrete: bool) -> Callable[[tf.Tensor], Layer]:
 def C_HeadLayer() -> Callable[[tf.Tensor], Layer]:
 
     def head(input_x: tf.Tensor) -> tf.Tensor:
-        x = Dense(1, activation='linear')(input_x)
+        x = Dense(512, activation="relu", kernel_initializer='he_uniform')(input_x)
+        x = Dense(1, activation='linear')(x)
         return x
 
     return head
@@ -53,7 +56,7 @@ def AC_MetaMemoryLayer(name: str) -> Callable[[tf.Tensor], Layer]:
         ### x -> (batch, trajectory_shape)
         x = tf.expand_dims(input_x, axis=1)  ### -> (batch, timestamps, trajectory_shape)
         ### -> (batch, 1, trajectory_shape)
-        x, memory_state, carry_state = LSTM(256, return_state=True, stateful=True, name=name)(x)
+        x, memory_state, carry_state = LSTM(512, return_state=True, stateful=True, name=name)(x)
         return x, [memory_state, carry_state]
 
     return memory

@@ -1,9 +1,12 @@
-from typing import Any, List, Tuple
+from typing import Any, List, Tuple, Optional
 
 import numpy as np
 import tensorflow as tf
 
+from tensorflow.python.keras import Model
 from tensorflow.python.keras.layers import LSTM
+
+from policies import Policy
 
 from .a3c import A3C
 
@@ -12,13 +15,46 @@ from .a3c import A3C
 
 class A3CMeta(A3C):
 
+    def __init__(
+        self,
+        n_max_episode_steps: int,
+        policy: Policy,
+        actor_network: Model,
+        critic_network: Model,
+        memory_network: Model,
+        gamma: float = 0.99,
+        standardize_advantage_estimate: bool = True,
+        critic_loss_coef: float = 0.5,
+        opt_gradient_clip_norm: Optional[float] = None,
+        opt_actor_lr: float = 5e-5,
+        opt_critic_lr: float = 5e-5,
+        entropy_loss_coef: float = 1e-3,
+        gae_lambda: float = 0.9,
+    ) -> None:
+        super(A3CMeta, self).__init__(
+            n_max_episode_steps=n_max_episode_steps,
+            policy=policy,
+            actor_network=actor_network,
+            critic_network=critic_network,
+            gamma=gamma,
+            standardize_advantage_estimate=standardize_advantage_estimate,
+            critic_loss_coef=critic_loss_coef,
+            opt_gradient_clip_norm=opt_gradient_clip_norm,
+            opt_actor_lr=opt_actor_lr,
+            opt_critic_lr=opt_critic_lr,
+            entropy_loss_coef=entropy_loss_coef,
+            gae_lambda=gae_lambda,
+        )
+
+        self.memory_network = memory_network
+
     @property
     def name(self) -> str:
         return "MetaA3C"
 
     @property
     def meta_memory_layer(self) -> LSTM:
-        memory_layer = self.actor_network.get_layer(name='MetaMemoryLayer')
+        memory_layer = self.memory_network.get_layer(name='MetaMemory')
         assert memory_layer is not None
         return memory_layer
 
@@ -26,8 +62,6 @@ class A3CMeta(A3C):
         return self.meta_memory_layer.states
 
     def set_meta_memory_layer_states(self, states: List[tf.Tensor]) -> None:
-        # self.meta_memory_layer._states = states
-        # self.meta_memory_layer.states(states)
         self.meta_memory_layer.reset_states(states)
 
     def reset_memory_layer_states(self) -> None:
