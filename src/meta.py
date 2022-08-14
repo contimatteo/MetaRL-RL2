@@ -89,7 +89,6 @@ def run_agent(envs: List[gym.Env], agent: MetaA3C):
                 action = int(agent.act(trajectory)[0])
 
                 next_state, reward, done, _ = env.step(action)
-                # logger.debug(f" > step = {step}, action = {action}, reward = {reward}, done = {done}")
 
                 agent.remember(step, state, action, reward, next_state, done)
                 state = next_state
@@ -120,9 +119,8 @@ def run_agent(envs: List[gym.Env], agent: MetaA3C):
 
     #
 
-    PlotUtils.model_training_overview(history)
-
-    plt.show()
+    # PlotUtils.model_training_overview(history)
+    # plt.show()
 
 
 ###

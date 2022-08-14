@@ -31,7 +31,7 @@ class MetaA3C(A3C):
         entropy_loss_coef: float = 1e-3,
         gae_lambda: float = 0.9,
     ) -> None:
-        super(A3CMeta, self).__init__(
+        super(MetaA3C, self).__init__(
             n_max_episode_steps=n_max_episode_steps,
             policy=policy,
             actor_network=actor_network,
