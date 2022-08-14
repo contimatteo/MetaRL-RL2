@@ -13,7 +13,7 @@ from loguru import logger
 from progress.bar import Bar
 
 from agents import A3C
-from agents import A3CMeta
+from agents import MetaA3C
 from environments import BanditEnv
 from environments import BanditTwoArmedDependentEasy
 from environments import BanditTwoArmedDependentMedium
@@ -36,7 +36,7 @@ N_MAX_EPISODE_STEPS = 10
 ###
 
 
-def run_agent(envs: List[gym.Env], agent: A3CMeta):
+def run_agent(envs: List[gym.Env], agent: MetaA3C):
     random.seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
     tf.random.set_seed(RANDOM_SEED)
@@ -157,7 +157,7 @@ def main():
         state_space=observation_space, action_space=action_space, network=actor_network
     )
 
-    meta = A3CMeta(
+    meta = MetaA3C(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
         policy=policy,
         actor_network=actor_network,

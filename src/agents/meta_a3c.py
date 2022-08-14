@@ -13,7 +13,7 @@ from .a3c import A3C
 ###
 
 
-class A3CMeta(A3C):
+class MetaA3C(A3C):
 
     def __init__(
         self,
