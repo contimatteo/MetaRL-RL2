@@ -17,7 +17,8 @@ class MetaPolicy(Policy, abc.ABC):
         assert isinstance(trajectory, list)
 
         for i, _input in enumerate(trajectory):
-            assert isinstance(_input, np.ndarray) or isinstance(_input, float)
+            assert isinstance(_input,
+                              np.ndarray) or (isinstance(_input, float) or isinstance(_input, int))
 
             if isinstance(_input, np.ndarray):
                 if len(_input.shape) == 1:

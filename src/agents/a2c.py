@@ -24,6 +24,10 @@ class A2C(AC):
     def name(self) -> str:
         return "A2C"
 
+    @property
+    def meta_algorithm(self) -> bool:
+        return False
+
     #
 
     def _advantage_estimates(

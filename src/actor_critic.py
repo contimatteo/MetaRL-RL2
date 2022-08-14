@@ -14,8 +14,11 @@ from tensorflow.python.keras.optimizers import rmsprop_v2
 from agents import AC
 from agents import A2C
 from agents import A3C
+from agents import MetaA3C
 from networks import ActorCriticNetworks
+from networks import MetaActorCriticNetworks
 from policies import NetworkPolicy
+from policies import NetworkMetaPolicy
 from utils import PlotUtils
 
 ###
@@ -27,7 +30,6 @@ ENV_NAME = "CartPole-v0"
 
 N_EPISODES_TRAIN = 25
 N_EPISODES_TEST = N_EPISODES_TRAIN
-
 N_MAX_EPISODE_STEPS = 10000
 
 TRAIN_BATCH_SIZE = None
@@ -84,17 +86,26 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
         done = False
         tot_reward = 0
         next_state = None
+        prev_action = 0
+        prev_reward = 0.
 
         while not done and steps < N_MAX_EPISODE_STEPS:
-            action = int(agent.act(state)[0])
+            if agent.meta_algorithm:
+                trajectory = [state, prev_action, prev_reward]
+            else:
+                trajectory = np.array([state])
+
+            action = int(agent.act(trajectory)[0])
             next_state, reward, done, _ = env.step(action)
 
             steps += 1
             if training is True:
                 agent.remember(steps, state, action, reward, next_state, done)
 
-            tot_reward += reward
             state = next_state
+            prev_action = action
+            prev_reward = float(reward)
+            tot_reward += reward
 
         actor_loss, critic_loss = 0, 0
         if training is True:
@@ -110,9 +121,9 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
 
         progbar.next()
 
-    progbar.finish()
-
     #
+
+    progbar.finish()
 
     agent.memory.reset()
 
@@ -153,8 +164,13 @@ def main():
     #     critic_network_opt=a2c_critic_network_opt,
     #     standardize_advantage_estimate=False
     # )
+    # tf.keras.backend.clear_session()
+    # a2c_train_history = run(N_EPISODES_TRAIN, env, a2c, training=True)
+    # a2c_test_history = run(N_EPISODES_TEST, env, a2c, training=False)
+    # __plot(a2c.name, a2c_train_history, a2c_test_history)
+    # print("\n")
 
-    #
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     a3c_actor_network, a3c_critic_network = ActorCriticNetworks(
         observation_space, action_space, shared_backbone=False
@@ -177,21 +193,43 @@ def main():
         standardize_advantage_estimate=True
     )
 
-    #
-
-    # tf.keras.backend.clear_session()
-    # a2c_train_history = run(N_EPISODES_TRAIN, env, a2c, training=True)
-    # a2c_test_history = run(N_EPISODES_TEST, env, a2c, training=False)
-    # __plot(a2c.name, a2c_train_history, a2c_test_history)
-    print("\n")
-
-    #
-
     tf.keras.backend.clear_session()
     a3c_train_history = run(N_EPISODES_TRAIN, env, a3c, training=True)
     a3c_test_history = run(N_EPISODES_TEST, env, a3c, training=False)
     __plot(a3c.name, a3c_train_history, a3c_test_history)
     print("\n")
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    # a3cmeta_actor_nn, a3cmeta_critic_nn, a3cmeta_memory_nn = MetaActorCriticNetworks(
+    #     observation_space, action_space, shared_backbone=False
+    # )
+
+    # a3cmeta_policy = NetworkMetaPolicy(
+    #     state_space=observation_space, action_space=action_space, network=a3cmeta_actor_nn
+    # )
+
+    # a3cmeta_actor_nn_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
+    # a3cmeta_critic_nn_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
+
+    # a3cmeta = MetaA3C(
+    #     n_max_episode_steps=N_MAX_EPISODE_STEPS,
+    #     policy=a3cmeta_policy,
+    #     actor_network=a3cmeta_actor_nn,
+    #     critic_network=a3cmeta_critic_nn,
+    #     actor_network_opt=a3cmeta_actor_nn_opt,
+    #     critic_network_opt=a3cmeta_critic_nn_opt,
+    #     memory_network=a3cmeta_memory_nn,
+    #     standardize_advantage_estimate=True
+    # )
+
+    # tf.keras.backend.clear_session()
+    # a3cmeta_train_history = run(N_EPISODES_TRAIN, env, a3cmeta, training=True)
+    # a3cmeta_test_history = run(N_EPISODES_TEST, env, a3cmeta, training=False)
+    # __plot(a3cmeta.name, a3cmeta_train_history, a3cmeta_test_history)
+    # print("\n")
+
+    # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
 ###
