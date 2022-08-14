@@ -101,7 +101,7 @@ class MetaA3C(A3C):
 
     #
 
-    def train(self, batch_size: int) -> Any:
+    def train(self, batch_size: Optional[int] = None, shuffle: bool = False) -> Any
         steps_metrics = {
             "actor_nn_loss": [],
             "critic_nn_loss": [],
