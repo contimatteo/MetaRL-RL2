@@ -1,5 +1,5 @@
 ###
 
-from .actor_critic import AC_AdvantageEstimateUtils
+from .actor_critic import AdvantageEstimateUtils
 
 from .plots import PlotUtils

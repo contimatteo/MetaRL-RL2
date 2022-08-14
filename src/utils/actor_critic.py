@@ -1,4 +1,3 @@
-from re import I
 from typing import Any, Union
 
 import numpy as np
@@ -77,7 +76,7 @@ PY_NUMERIC_EPS = 1e-8
 ###
 
 
-class AC_AdvantageEstimateUtils():
+class AdvantageEstimateUtils():
     """
     ### A2C/A3C Advantage Estimate
     
@@ -94,7 +93,7 @@ class AC_AdvantageEstimateUtils():
         the Q-value of the action being replaced by the actual return
         """
 
-        assert rewards.shape[0] == state_v.shape[0]
+        # assert rewards.shape[0] == state_v.shape[0]
 
         return tf.math.subtract(rewards, state_v)
 
@@ -112,17 +111,18 @@ class AC_AdvantageEstimateUtils():
         if `s′` is terminal, then `Vφ(s′) ≐ 0`
         """
 
-        assert isinstance(gamma, float)
-        assert rewards.shape[0] == state_v.shape[0] == dones.shape[0]
-        assert state_v.shape == next_state_v.shape
+        # assert isinstance(gamma, float)
+        # assert rewards.shape[0] == state_v.shape[0] == dones.shape[0]
+        # assert state_v.shape == next_state_v.shape
 
         not_dones = tf.math.subtract(1, dones)
         _next_state_v = tf.math.multiply(not_dones, next_state_v)  ### Vφ(s′) ≐ 0 if s' is terminal
 
         _expr1 = tf.math.subtract(rewards, state_v)  ### r(s,a,s′) − Vφ(s)
         _expr2 = tf.math.multiply(gamma, _next_state_v)  ### γVφ(s′)
+        td = _expr1 + _expr2
 
-        return _expr1 + _expr2
+        return tf.cast(td, dtype=tf.float32)
 
     @staticmethod
     def NStep() -> tf.Tensor:
@@ -150,10 +150,10 @@ class AC_AdvantageEstimateUtils():
         if `s′` is terminal, then `Vφ(s′) ≐ 0`
         """
 
-        assert isinstance(gamma, float)
-        assert isinstance(gae_lambda, float)
-        assert rewards.shape[0] == state_v.shape[0] == dones.shape[0]
-        assert state_v.shape == next_state_v.shape
+        # assert isinstance(gamma, float)
+        # assert isinstance(gae_lambda, float)
+        # assert rewards.shape[0] == state_v.shape[0] == dones.shape[0]
+        # assert state_v.shape == next_state_v.shape
 
         _rewards = rewards.numpy()
         not_dones = tf.math.subtract(1, dones)

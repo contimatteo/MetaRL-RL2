@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -7,10 +7,17 @@ import tensorflow_probability as tfp
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.losses import mean_squared_error
 from tensorflow.python.keras.optimizers import adam_v2
+from tensorflow.python.keras.optimizers import rmsprop_v2
 
 from policies import Policy
+from utils import AdvantageEstimateUtils
 
 from .agent import Agent
+
+###
+
+T_Tensor = tf.Tensor
+T_TensorsTuple = Tuple[T_Tensor, T_Tensor]
 
 ###
 
@@ -26,7 +33,7 @@ class A2C(Agent):
         actor_network: Model,
         critic_network: Model,
         gamma: float = 0.99,
-        standardize_advantage_estimate: bool = True,
+        standardize_advantage_estimate: bool = False,
         critic_loss_coef: float = 0.5,
         opt_gradient_clip_norm: Optional[float] = None,  # 0.25,
         opt_actor_lr: float = 5e-5,
@@ -39,11 +46,13 @@ class A2C(Agent):
         self._opt_gradient_clip_norm = opt_gradient_clip_norm
         self._standardize_advantage_estimate = standardize_advantage_estimate
 
-        self.actor_network = actor_network  # ActorNetwork(n_actions=self.env.action_space.n)
-        self.critic_network = critic_network  # CriticNetwork()
+        self.actor_network = actor_network
+        self.critic_network = critic_network
 
-        self.actor_network_optimizer = adam_v2.Adam(learning_rate=opt_actor_lr)
-        self.critic_network_optimizer = adam_v2.Adam(learning_rate=opt_critic_lr)
+        # self.actor_network_optimizer = adam_v2.Adam(learning_rate=opt_actor_lr)
+        self.actor_network_optimizer = rmsprop_v2.RMSprop(learning_rate=1e-4)
+        # self.critic_network_optimizer = adam_v2.Adam(learning_rate=opt_critic_lr)
+        self.critic_network_optimizer = rmsprop_v2.RMSprop(learning_rate=1e-4)
 
     #
 
@@ -52,69 +61,63 @@ class A2C(Agent):
         return "A2C"
 
     def _discount_rewards(self, rewards: np.ndarray) -> np.ndarray:
-        # discounted_rewards, reward_sum = [], 0
-        # rewards = rewards.tolist()
-        # rewards.reverse()
-        # for r in rewards:
-        #     reward_sum = r + self._gamma * reward_sum
-        #     discounted_rewards.append(reward_sum)
-        # discounted_rewards.reverse()
-        # rewards = np.array(discounted_rewards, dtype=np.float32)
-        return rewards
+        # discounted_rewards = rewards
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+        discounted_rewards, reward_sum = [], 0
+        rewards = rewards.tolist()
+        rewards.reverse()
+        for r in rewards:
+            reward_sum = r + self._gamma * reward_sum
+            discounted_rewards.append(reward_sum)
+        discounted_rewards.reverse()
+        # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+        return tf.cast(discounted_rewards, tf.float32)
 
     #
 
-    ### TODO: must be rewritten following "N-Step Advantage Estimate"
-    def _advantage_estimates(self, rewards: Any, state_v: Any, next_state_v: Any, done: Any) -> Any:
-        """
-        ### TD-Error (1-Step Advantage)
-        `Aφ(s,a) = r(s,a,s′) + γVφ(s′) − Vφ(s)` \n
-        if `s′` is terminal, then `Vφ(s′) ≐ 0`
-        ### N-Step Advantage Estimate
-        `Aφ(s,a) = ∑_{k=0..n−1} (γ^k * r_{t+k+1}) + (γ^n * Vφ(s_{t+n+1})) − Vφ(st)` \n
-        """
-        _advantages_expr1 = tf.math.subtract(rewards, state_v)  ### r(s,a,s′) − Vφ(s)
-        _advantages_expr2 = tf.math.multiply(self._gamma, next_state_v)  ### γVφ(s′)
-        advantages = _advantages_expr1 + _advantages_expr2
+    def _advantage_estimates(
+        self, rewards: np.ndarray, state_v: np.ndarray, next_state_v: np.ndarray, dones: T_Tensor
+    ) -> T_Tensor:
+        ### TODO: we have to use the "N-Step Advantage Estimate"
+        # return tf.stop_gradient(AdvantageEstimateUtils.MC(rewards, state_v))
+        # return tf.stop_gradient(
+        #     AdvantageEstimateUtils.TD(self._gamma, rewards, state_v, next_state_v, dones)
+        # )
+        disc_rewards = self._discount_rewards(rewards)
+        return tf.stop_gradient(AdvantageEstimateUtils.MC(disc_rewards, state_v))
 
-        returns = tf.convert_to_tensor(advantages + state_v, dtype=tf.float32)
-        advantages = tf.convert_to_tensor(advantages, dtype=tf.float32)
+    def _standardize_advantages(self, advantages: Any) -> Any:
+        if self._standardize_advantage_estimate:
+            return AdvantageEstimateUtils.standardize(advantages)
+        return advantages
 
-        advantages = self._standardize_advantage_estimates(advantages)
+    def _critic_network_loss(self, rewards: Any, advantages: Any, state_value: Any):
+        # return self._critic_loss_coef * mean_squared_error(advantages, state_value)
+        disc_rewards = self._discount_rewards(rewards)
+        return self._critic_loss_coef * mean_squared_error(disc_rewards, state_value)
 
-        ### TODO: with or without this tensor?
-        # return tf.stop_gradient(returns), tf.stop_gradient(advantages)
-        return tf.stop_gradient(advantages)
-
-    def _standardize_advantage_estimates(self, advantages: Any) -> Any:
-        if not self._standardize_advantage_estimate:
-            return advantages
-
-        return (
-            (advantages - tf.math.reduce_mean(advantages)) /
-            (tf.math.reduce_std(advantages) + self.PY_NUMERIC_EPS)
-        )
-
-    def _critic_network_loss(self, advantages: Any, state_value: Any):
-        return self._critic_loss_coef * mean_squared_error(advantages, state_value)
-
-    def _actor_network_loss(self, actions_probs: Any, actions: Any, action_advantages: Any):
+    def _actor_network_loss(self, actions_probs: Any, actions: Any, advantages: Any):
         policy_losses = []
-
         for step_actions_probs, action_taken, advantage_estimate in zip(
-            actions_probs, actions, action_advantages.numpy()
+            actions_probs, actions, advantages.numpy()
         ):
             advantage = tf.constant(advantage_estimate)  ### exclude from gradient computation
             distribution = tfp.distributions.Categorical(
                 probs=step_actions_probs + .000001, dtype=tf.float32
             )
-            policy_loss = tf.math.multiply(distribution.log_prob(action_taken), advantage)
+            action_log_prob = distribution.log_prob(action_taken)
+            policy_loss = tf.math.multiply(action_log_prob, advantage)
             policy_losses.append(policy_loss)
-
-        # policy_loss = tf.reduce_mean(tf.stack(policy_losses))
-        policy_loss = tf.reduce_sum(tf.stack(policy_losses))
-
+        policy_loss = tf.reduce_mean(tf.stack(policy_losses))
+        # policy_loss = tf.reduce_sum(tf.stack(policy_losses))
         return -policy_loss
+
+    def _clip_gradients_norm(self, a_grads: tf.Tensor, c_grads: tf.Tensor) -> T_TensorsTuple:
+        if self._opt_gradient_clip_norm is not None:
+            a_grads, _ = tf.clip_by_global_norm(a_grads, self._opt_gradient_clip_norm)
+            c_grads, _ = tf.clip_by_global_norm(c_grads, self._opt_gradient_clip_norm)
+
+        return a_grads, c_grads
 
     #
 
@@ -122,80 +125,53 @@ class A2C(Agent):
         return self.policy.act(state)
 
     def train(self, batch_size: int) -> Any:
-        steps_metrics = {
-            "actor_nn_loss": [],
-            "critic_nn_loss": [],
-            "rewards": [],
-        }
-        episode_metrics = {
-            "steps": 0,
-            "actor_nn_loss_avg": 0,
-            "critic_nn_loss_avg": 0,
-            "rewards_avg": 0,
-            "rewards_sum": 0,
-        }
+        ep_data = self.memory.all()
+
+        states = ep_data["states"]
+        rewards = ep_data["rewards"]
+        actions = ep_data["actions"]
+        next_states = ep_data["next_states"]
+        _dones = ep_data["done"]
+
+        assert states.shape[0] == rewards.shape[0] == actions.shape[0]
+        assert states.shape[0] == next_states.shape[0] == _dones.shape[0]
+
+        dones = tf.cast(tf.cast(_dones, tf.int8), tf.float32)
 
         #
 
-        ep_data = self.memory.to_tf_dataset()
-        ### TODO: with or without shuffling?
-        # ep_data = ep_data.shuffle(ep_data.cardinality())
-        ep_data_batches = ep_data.batch(batch_size)
+        with tf.GradientTape() as a_tape, tf.GradientTape() as c_tape:
+            actions_probs = self.actor_network(states, training=True)
+            states_val = self.critic_network(states, training=True)
+            next_states_val = self.critic_network(next_states, training=True)
 
-        for ep_data_batch in ep_data_batches:
-            _states = ep_data_batch["states"]
-            _rewards = ep_data_batch["rewards"]
-            _actions = ep_data_batch["actions"]
-            _next_states = ep_data_batch["next_states"]
-            _done = ep_data_batch["done"]
+            states_val = tf.reshape(states_val, (len(states_val)))
+            next_states_val = tf.reshape(next_states_val, (len(next_states_val)))
 
-            _disc_rewards = self._discount_rewards(_rewards)
-            _disc_rewards = tf.cast(_disc_rewards, tf.float32)
-
-            assert _states.shape[0] == _disc_rewards.shape[0] == _actions.shape[0]
-            assert _states.shape[0] == _next_states.shape[0] == _done.shape[0]
-
-            with tf.GradientTape() as tape1, tf.GradientTape() as tape2:
-                actions_probs = self.actor_network(_states, training=True)
-                state_values = self.critic_network(_states, training=True)
-                next_state_values = self.critic_network(_next_states, training=True)
-
-                state_values = tf.reshape(state_values, (len(state_values)))
-                next_state_values = tf.reshape(next_state_values, (len(next_state_values)))
-
-                action_advantages = tf.stop_gradient(
-                    self._advantage_estimates(
-                        _disc_rewards, state_values, next_state_values, _done
-                    )
-                )
-
-                actor_loss = self._actor_network_loss(actions_probs, _actions, action_advantages)
-                critic_loss = self._critic_network_loss(action_advantages, state_values)
-
-            actor_grads = tape1.gradient(actor_loss, self.actor_network.trainable_variables)
-            critic_grads = tape2.gradient(critic_loss, self.critic_network.trainable_variables)
-
-            if self._opt_gradient_clip_norm is not None:
-                actor_grads, _ = tf.clip_by_global_norm(actor_grads, self._opt_gradient_clip_norm)
-                critic_grads, _ = tf.clip_by_global_norm(critic_grads, self._opt_gradient_clip_norm)
-
-            self.actor_network_optimizer.apply_gradients(
-                zip(actor_grads, self.actor_network.trainable_variables)
+            ### Action Advantage Estimates
+            advantages = tf.stop_gradient(
+                self._advantage_estimates(rewards, states_val, next_states_val, dones)
             )
-            self.critic_network_optimizer.apply_gradients(
-                zip(critic_grads, self.critic_network.trainable_variables)
-            )
+            advantages = tf.stop_gradient(self._standardize_advantages(advantages))
 
-            steps_metrics["actor_nn_loss"].append(actor_loss)
-            steps_metrics["critic_nn_loss"].append(critic_loss)
-            steps_metrics["rewards"] += _rewards.numpy().tolist()
+            actor_loss = self._actor_network_loss(actions_probs, actions, advantages)
+            critic_loss = self._critic_network_loss(rewards, advantages, states_val)
 
-        episode_metrics["steps"] = ep_data.cardinality().numpy()
-        episode_metrics["actor_nn_loss_avg"] = np.mean(steps_metrics["actor_nn_loss"])
-        episode_metrics["critic_nn_loss_avg"] = np.mean(steps_metrics["critic_nn_loss"])
-        episode_metrics["actor_nn_loss_sum"] = np.sum(steps_metrics["actor_nn_loss"])
-        episode_metrics["critic_nn_loss_sum"] = np.sum(steps_metrics["critic_nn_loss"])
-        episode_metrics["rewards_avg"] = np.mean(steps_metrics["rewards"])
-        episode_metrics["rewards_sum"] = np.sum(steps_metrics["rewards"])
+            assert not tf.math.is_inf(actor_loss) and not tf.math.is_nan(actor_loss)
+            assert not tf.math.is_inf(critic_loss) and not tf.math.is_nan(critic_loss)
 
-        return episode_metrics
+        actor_grads = a_tape.gradient(actor_loss, self.actor_network.trainable_variables)
+        critic_grads = c_tape.gradient(critic_loss, self.critic_network.trainable_variables)
+
+        actor_grads, critic_grads = self._clip_gradients_norm(actor_grads, critic_grads)
+
+        self.actor_network_optimizer.apply_gradients(
+            zip(actor_grads, self.actor_network.trainable_variables)
+        )
+        self.critic_network_optimizer.apply_gradients(
+            zip(critic_grads, self.critic_network.trainable_variables)
+        )
+
+        #
+
+        return actor_loss, critic_loss
