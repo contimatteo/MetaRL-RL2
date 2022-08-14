@@ -9,7 +9,9 @@ import tensorflow as tf
 
 from loguru import logger
 from progress.bar import Bar
+from tensorflow.python.keras.optimizers import rmsprop_v2
 
+from agents import AC
 from agents import A2C
 from agents import A3C
 from networks import ActorCriticNetworks
@@ -24,8 +26,8 @@ ENV_NAME = "CartPole-v0"
 # ENV_NAME = "MountainCar-v0"
 # ENV_NAME = "LunarLander-v2"
 
-N_EPISODES_TRAIN = 5
-N_EPISODES_TEST = 5
+N_EPISODES_TRAIN = 50
+N_EPISODES_TEST = 50
 
 N_MAX_EPISODE_STEPS = 10000
 
@@ -55,6 +57,7 @@ def __plot(train_history, test_history):
         }
     )
 
+    plt.legend()
     plt.show()
 
 
@@ -85,7 +88,6 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
         while not done and steps < N_MAX_EPISODE_STEPS:
             action = int(agent.act(state)[0])
             next_state, reward, done, _ = env.step(action)
-            # logger.debug(f" > steps = {steps}, action = {action}, reward = {reward}, done = {done}")
 
             steps += 1
             tot_reward += reward
@@ -135,15 +137,21 @@ def main():
     a2c_actor_network, a2c_critic_network = ActorCriticNetworks(
         observation_space, action_space, shared_backbone=False
     )
+
     a2c_policy = NetworkPolicy(
         state_space=observation_space, action_space=action_space, network=a2c_actor_network
     )
+
+    a2c_actor_network_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
+    a2c_critic_network_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
+
     a2c = A2C(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
         policy=a2c_policy,
         actor_network=a2c_actor_network,
         critic_network=a2c_critic_network,
-        opt_gradient_clip_norm=999.0,
+        actor_network_opt=a2c_actor_network_opt,
+        critic_network_opt=a2c_critic_network_opt,
     )
 
     #
@@ -151,25 +159,36 @@ def main():
     a3c_actor_network, a3c_critic_network = ActorCriticNetworks(
         observation_space, action_space, shared_backbone=False
     )
+
     a3c_policy = NetworkPolicy(
         state_space=observation_space, action_space=action_space, network=a3c_actor_network
     )
+
+    a3c_actor_network_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
+    a3c_critic_network_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
+
     a3c = A3C(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
         policy=a3c_policy,
         actor_network=a3c_actor_network,
         critic_network=a3c_critic_network,
-        opt_gradient_clip_norm=999.0  # 0.25
+        actor_network_opt=a3c_actor_network_opt,
+        critic_network_opt=a3c_critic_network_opt,
     )
 
     #
 
     tf.keras.backend.clear_session()
-
     a2c_train_history = run(N_EPISODES_TRAIN, env, a2c, training=True)
     a2c_test_history = run(N_EPISODES_TEST, env, a2c, training=False)
-
     __plot(a2c_train_history, a2c_test_history)
+
+    #
+
+    # tf.keras.backend.clear_session()
+    # a3c_train_history = run(N_EPISODES_TRAIN, env, a3c, training=True)
+    # a3c_test_history = run(N_EPISODES_TEST, env, a3c, training=False)
+    # __plot(a3c_train_history, a3c_test_history)
 
 
 ###
