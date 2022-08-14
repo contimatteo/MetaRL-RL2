@@ -102,56 +102,77 @@ class AC(Agent):
     def act(self, state: np.ndarray) -> np.ndarray:
         return self.policy.act(state)
 
-    def train(self, batch_size: int) -> Any:
+    def train(self, batch_size: Optional[int] = None, shuffle: bool = False) -> Any:
         ep_data = self.memory.all()
 
         states = ep_data["states"]
         rewards = ep_data["rewards"]
         actions = ep_data["actions"]
         next_states = ep_data["next_states"]
-        _dones = ep_data["done"]
 
         assert states.shape[0] == rewards.shape[0] == actions.shape[0]
-        assert states.shape[0] == next_states.shape[0] == _dones.shape[0]
+        assert states.shape[0] == next_states.shape[0] == ep_data["done"].shape[0]
 
         disc_rewards = self.__discount_rewards(rewards)
-        dones = tf.cast(tf.cast(_dones, tf.int8), tf.float32)
+        dones = tf.cast(tf.cast(ep_data["done"], tf.int8), tf.float32)
+
+        assert states.shape[0] == disc_rewards.shape[0] == dones.shape[0]
 
         #
 
-        with tf.GradientTape() as a_tape, tf.GradientTape() as c_tape:
-            actions_probs = self.actor_network(states, training=True)
-            states_val = self.critic_network(states, training=True)
-            next_states_val = self.critic_network(next_states, training=True)
+        indexes = np.arange(states.shape[0])
 
-            states_val = tf.reshape(states_val, (len(states_val)))
-            next_states_val = tf.reshape(next_states_val, (len(next_states_val)))
+        if shuffle:
+            np.random.shuffle(indexes)
+        if batch_size is None:
+            batch_size = states.shape[0]
 
-            ### Action Advantage Estimates
-            advantages = tf.stop_gradient(
-                self._advantage_estimates(
-                    rewards, disc_rewards, states_val, next_states_val, dones
+        for b_start_idx in range(0, states.shape[0], batch_size):
+            b_end_idx = b_start_idx + batch_size
+            b_idxs = indexes[b_start_idx:b_end_idx]
+
+            _dones = tf.gather(dones, b_idxs, axis=0)
+            _states = tf.gather(states, b_idxs, axis=0)
+            _rewards = tf.gather(rewards, b_idxs, axis=0)
+            _actions = tf.gather(actions, b_idxs, axis=0)
+            _next_states = tf.gather(next_states, b_idxs, axis=0)
+            _disc_rewards = tf.gather(disc_rewards, b_idxs, axis=0)
+
+            with tf.GradientTape() as a_tape, tf.GradientTape() as c_tape:
+                actions_probs = self.actor_network(_states, training=True)
+                states_val = self.critic_network(_states, training=True)
+                next_states_val = self.critic_network(_next_states, training=True)
+
+                states_val = tf.reshape(states_val, (len(states_val)))
+                next_states_val = tf.reshape(next_states_val, (len(next_states_val)))
+
+                ### Action Advantage Estimates
+                advantages = tf.stop_gradient(
+                    self._advantage_estimates(
+                        _rewards, _disc_rewards, states_val, next_states_val, _dones
+                    )
                 )
+                advantages = self.__standardize_advantages(advantages)
+
+                actor_loss = self._actor_network_loss(actions_probs, _actions, advantages)
+                critic_loss = self._critic_network_loss(
+                    _rewards, _disc_rewards, advantages, states_val
+                )
+
+                assert not tf.math.is_inf(actor_loss) and not tf.math.is_nan(actor_loss)
+                assert not tf.math.is_inf(critic_loss) and not tf.math.is_nan(critic_loss)
+
+            actor_grads = a_tape.gradient(actor_loss, self.actor_network.trainable_variables)
+            critic_grads = c_tape.gradient(critic_loss, self.critic_network.trainable_variables)
+
+            actor_grads, critic_grads = self.__clip_gradients_norm(actor_grads, critic_grads)
+
+            self.actor_network_optimizer.apply_gradients(
+                zip(actor_grads, self.actor_network.trainable_variables)
             )
-            advantages = self.__standardize_advantages(advantages)
-
-            actor_loss = self._actor_network_loss(actions_probs, actions, advantages)
-            critic_loss = self._critic_network_loss(rewards, disc_rewards, advantages, states_val)
-
-            assert not tf.math.is_inf(actor_loss) and not tf.math.is_nan(actor_loss)
-            assert not tf.math.is_inf(critic_loss) and not tf.math.is_nan(critic_loss)
-
-        actor_grads = a_tape.gradient(actor_loss, self.actor_network.trainable_variables)
-        critic_grads = c_tape.gradient(critic_loss, self.critic_network.trainable_variables)
-
-        actor_grads, critic_grads = self.__clip_gradients_norm(actor_grads, critic_grads)
-
-        self.actor_network_optimizer.apply_gradients(
-            zip(actor_grads, self.actor_network.trainable_variables)
-        )
-        self.critic_network_optimizer.apply_gradients(
-            zip(critic_grads, self.critic_network.trainable_variables)
-        )
+            self.critic_network_optimizer.apply_gradients(
+                zip(critic_grads, self.critic_network.trainable_variables)
+            )
 
         #
 

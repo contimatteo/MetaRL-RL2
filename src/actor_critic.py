@@ -31,7 +31,7 @@ N_EPISODES_TEST = 5
 
 N_MAX_EPISODE_STEPS = 10000
 
-TRAIN_BATCH_SIZE = 32
+TRAIN_BATCH_SIZE = 16
 
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
@@ -74,31 +74,37 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
         progbar = Bar('[test] Episodes ...', max=n_episodes)
 
     for _ in range(n_episodes):
-        steps = 0
-        tot_reward = 0
-
         state = env.reset()
-        agent.memory.reset()
+
+        if training:
+            agent.memory.reset()
 
         #
 
+        steps = 0
         done = False
+        tot_reward = 0
         next_state = None
 
-        while not done and steps < N_MAX_EPISODE_STEPS:
+        def __run_episodes_replay(done: bool, steps: int) -> bool:
+            if training:
+                return not done and steps < N_MAX_EPISODE_STEPS
+            return not done
+
+        while __run_episodes_replay(done, steps):
             action = int(agent.act(state)[0])
             next_state, reward, done, _ = env.step(action)
 
             steps += 1
-            tot_reward += reward
+            if training:
+                agent.remember(steps, state, action, reward, next_state, done)
 
-            agent.remember(steps, state, action, reward, next_state, done)
+            tot_reward += reward
             state = next_state
 
+        actor_loss, critic_loss = 0, 0
         if training:
             actor_loss, critic_loss = agent.train(batch_size=TRAIN_BATCH_SIZE)
-        else:
-            actor_loss, critic_loss = 0, 0
 
         #
 
@@ -113,6 +119,8 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
     progbar.finish()
 
     #
+
+    agent.memory.reset()
 
     return {
         "n_episodes": n_episodes,
