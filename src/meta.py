@@ -3,33 +3,40 @@ from typing import List
 
 import utils.env_setup
 
-import random
 import gym
+import matplotlib.pyplot as plt
 import numpy as np
+import random
 import tensorflow as tf
 
 from loguru import logger
 from progress.bar import Bar
 
-from agents import A3C, A3CMeta
+from agents import A3C
+from agents import MetaA3C
 from environments import BanditEnv
+from environments import BanditTwoArmedDependentEasy
+from environments import BanditTwoArmedDependentMedium
+from environments import BanditTwoArmedDependentHard
 from networks import MetaActorCriticNetworks
-from policies import RandomMetaPolicy, NetworkMetaPolicy
+from policies import RandomMetaPolicy
+from policies import NetworkMetaPolicy
+from utils import PlotUtils
 
 ###
 
 RANDOM_SEED = 42
 
-TRAIN_BATCH_SIZE = 32
+TRAIN_BATCH_SIZE = 4
 
-N_TRIALS = 5
+N_TRIALS = 10
 N_EPISODES = 1
-N_MAX_EPISODE_STEPS = 100
+N_MAX_EPISODE_STEPS = 10
 
 ###
 
 
-def run_agent(envs: List[gym.Env], agent: A3CMeta):
+def run_agent(envs: List[gym.Env], agent: MetaA3C):
     random.seed(RANDOM_SEED)
     np.random.seed(RANDOM_SEED)
     tf.random.set_seed(RANDOM_SEED)
@@ -40,7 +47,8 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
 
     ### one requirement is that we should have at least 2 batches,
     ### otherwise we cannot update correctly the `meta-memory` states.
-    assert (N_MAX_EPISODE_STEPS % TRAIN_BATCH_SIZE) >= 2
+    assert N_MAX_EPISODE_STEPS > TRAIN_BATCH_SIZE
+    assert (N_MAX_EPISODE_STEPS / TRAIN_BATCH_SIZE) >= 2
 
     history = []
 
@@ -50,7 +58,7 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
         env = envs[trial % len(envs)]
         agent.env_sync(env)
 
-        ep_progbar = Bar(f"TRIAL {trial+1} -> Episodes ...", max=N_EPISODES)
+        ep_progbar = Bar(f"TRIAL {trial+1:02} -> Episodes ...", max=N_EPISODES)
 
         #
 
@@ -81,7 +89,6 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
                 action = int(agent.act(trajectory)[0])
 
                 next_state, reward, done, _ = env.step(action)
-                # logger.debug(f" > step = {step}, action = {action}, reward = {reward}, done = {done}")
 
                 agent.remember(step, state, action, reward, next_state, done)
                 state = next_state
@@ -98,20 +105,22 @@ def run_agent(envs: List[gym.Env], agent: A3CMeta):
 
     #
 
-    print("\n")
+    # print("\n")
+    # for episode_metrics in history:
+    #     logger.debug(
+    #         "> Al_avg = {:.3f}, Cl_avg = {:.3f}, R_avg = {:.3f}, R_sum = {:.3f}".format(
+    #             episode_metrics["actor_nn_loss_avg"],
+    #             episode_metrics["critic_nn_loss_avg"],
+    #             episode_metrics["rewards_avg"],
+    #             episode_metrics["rewards_sum"],
+    #         )
+    #     )
+    # print("\n")
 
-    for episode_metrics in history:
-        Al_avg = episode_metrics["actor_nn_loss_avg"]
-        # Al_sum = episode_metrics["actor_nn_loss_sum"]
-        Cl_avg = episode_metrics["critic_nn_loss_avg"]
-        # Cl_sum = episode_metrics["critic_nn_loss_sum"]
-        R_avg = episode_metrics["rewards_avg"]
-        R_sum = episode_metrics["rewards_sum"]
-        logger.debug(
-            "> Al_avg = {:.3f}, Cl_avg = {:.3f}, R_avg = {:.3f}".format(Al_avg, Cl_avg, R_avg)
-        )
+    #
 
-    print("\n")
+    # PlotUtils.model_training_overview(history)
+    # plt.show()
 
 
 ###
@@ -121,10 +130,15 @@ def main():
     ### ENV
 
     envs = [
-        BanditEnv(p_dist=[0.3, 0.7], r_dist=[1, 1]),
-        BanditEnv(p_dist=[0.5, 0.5], r_dist=[1, 1]),
-        BanditEnv(p_dist=[0.9, 0.1], r_dist=[1, 1]),
         # gym.make("LunarLander-v2"),
+        # BanditEnv(p_dist=[0.3, 0.7], r_dist=[0, 1]),
+        # BanditEnv(p_dist=[0.9, 0.1], r_dist=[1, 0]),
+        # BanditTwoArmedDependentEasy(),
+        # BanditTwoArmedDependentMedium(),
+        # BanditTwoArmedDependentMedium(),
+        # BanditTwoArmedDependentHard(),
+        BanditTwoArmedDependentEasy(),
+        BanditTwoArmedDependentEasy(),
     ]
 
     observation_space = envs[0].observation_space
@@ -141,7 +155,7 @@ def main():
         state_space=observation_space, action_space=action_space, network=actor_network
     )
 
-    meta = A3CMeta(
+    meta = MetaA3C(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
         policy=policy,
         actor_network=actor_network,
