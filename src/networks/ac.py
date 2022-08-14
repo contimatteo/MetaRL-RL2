@@ -38,17 +38,21 @@ def ActorCriticNetworks(
 
     #
 
+    ### encoder
     out_encoder = l_encoder(l_input)
 
+    ### backbone
     if shared_backbone:
         out_backbone = l_backbone_shared(out_encoder)
-        out_actor = l_actor_head(out_backbone)
-        out_critic = l_critic_head(out_backbone)
+        out_backbone_a = out_backbone
+        out_backbone_c = out_backbone
     else:
         out_backbone_a = l_backbone_a(out_encoder)
         out_backbone_c = l_backbone_c(out_encoder)
-        out_actor = l_actor_head(out_backbone_a)
-        out_critic = l_critic_head(out_backbone_c)
+
+    ### heads
+    out_actor = l_actor_head(out_backbone_a)
+    out_critic = l_critic_head(out_backbone_c)
 
     #
 

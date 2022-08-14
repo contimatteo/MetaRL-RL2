@@ -34,6 +34,10 @@ class A3C(A2C):
     def name(self) -> str:
         return "A3C"
 
+    @property
+    def meta_algorithm(self) -> bool:
+        return False
+
     #
 
     def _advantage_estimates(
