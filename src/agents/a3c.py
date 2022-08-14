@@ -5,6 +5,7 @@ import tensorflow as tf
 import tensorflow_probability as tfp
 
 from tensorflow.python.keras.losses import mean_squared_error
+from tensorflow.python.keras.losses import MeanSquaredError
 
 from utils import AdvantageEstimateUtils
 
@@ -36,7 +37,8 @@ class A3C(A2C):
     #
 
     def _advantage_estimates(
-        self, rewards: np.ndarray, state_v: np.ndarray, next_state_v: np.ndarray, dones: T_Tensor
+        self, rewards: np.ndarray, disc_rewards: tf.Tensor, state_v: np.ndarray,
+        next_state_v: np.ndarray, dones: T_Tensor
     ) -> T_Tensor:
         # gamma = self._gamma
         # gae_lambda = self._gae_lambda
@@ -94,6 +96,10 @@ class A3C(A2C):
         ### the Actor loss is the "negative log-likelihood"
         return -policy_loss - entropy_loss
 
-    def _critic_network_loss(self, rewards: Any, advantages: Any, state_value: Any):
-        # return self._critic_loss_coef * mean_squared_error(advantages, state_value)
-        return mean_squared_error(advantages, state_value)
+    def _critic_network_loss(
+        self, rewards: Any, disc_rewards: tf.Tensor, advantages: Any, state_value: Any
+    ):
+        # loss = mean_squared_error(advantages, state_value)
+        loss = MeanSquaredError(reduction=tf.keras.losses.Reduction.SUM)(advantages, state_value)
+
+        return self._critic_loss_coef * loss

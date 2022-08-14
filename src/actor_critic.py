@@ -26,8 +26,8 @@ ENV_NAME = "CartPole-v0"
 # ENV_NAME = "MountainCar-v0"
 # ENV_NAME = "LunarLander-v2"
 
-N_EPISODES_TRAIN = 50
-N_EPISODES_TEST = 50
+N_EPISODES_TRAIN = 10
+N_EPISODES_TEST = 5
 
 N_MAX_EPISODE_STEPS = 10000
 
@@ -39,8 +39,9 @@ tf.random.set_seed(RANDOM_SEED)
 ###
 
 
-def __plot(train_history, test_history):
+def __plot(agent_name, train_history, test_history):
     PlotUtils.train_test_history(
+        agent_name,
         {
             ### train
             "train_n_episodes": train_history["n_episodes"],
@@ -57,7 +58,6 @@ def __plot(train_history, test_history):
         }
     )
 
-    plt.legend()
     plt.show()
 
 
@@ -152,6 +152,7 @@ def main():
         critic_network=a2c_critic_network,
         actor_network_opt=a2c_actor_network_opt,
         critic_network_opt=a2c_critic_network_opt,
+        standardize_advantage_estimate=False
     )
 
     #
@@ -174,21 +175,24 @@ def main():
         critic_network=a3c_critic_network,
         actor_network_opt=a3c_actor_network_opt,
         critic_network_opt=a3c_critic_network_opt,
+        standardize_advantage_estimate=True
     )
 
     #
 
-    tf.keras.backend.clear_session()
-    a2c_train_history = run(N_EPISODES_TRAIN, env, a2c, training=True)
-    a2c_test_history = run(N_EPISODES_TEST, env, a2c, training=False)
-    __plot(a2c_train_history, a2c_test_history)
+    # tf.keras.backend.clear_session()
+    # a2c_train_history = run(N_EPISODES_TRAIN, env, a2c, training=True)
+    # a2c_test_history = run(N_EPISODES_TEST, env, a2c, training=False)
+    # __plot(a2c.name, a2c_train_history, a2c_test_history)
+    print("\n")
 
     #
 
-    # tf.keras.backend.clear_session()
-    # a3c_train_history = run(N_EPISODES_TRAIN, env, a3c, training=True)
-    # a3c_test_history = run(N_EPISODES_TEST, env, a3c, training=False)
-    # __plot(a3c_train_history, a3c_test_history)
+    tf.keras.backend.clear_session()
+    a3c_train_history = run(N_EPISODES_TRAIN, env, a3c, training=True)
+    a3c_test_history = run(N_EPISODES_TEST, env, a3c, training=False)
+    __plot(a3c.name, a3c_train_history, a3c_test_history)
+    print("\n")
 
 
 ###

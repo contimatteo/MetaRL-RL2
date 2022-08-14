@@ -14,8 +14,11 @@ class PlotUtils:
         return make_interp_spline(x, y, k=k)(x)
 
     @staticmethod
-    def train_test_history(history: dict):
+    def train_test_history(agent_name, history: dict):
         fig, axs = plt.subplots(2, 2)
+
+        fig_manager = plt.get_current_fig_manager()
+        fig_manager.canvas.set_window_title(agent_name)
 
         train_ep = np.arange(0, history["train_n_episodes"], 1)
         test_ep = np.arange(0, history["test_n_episodes"], 1)
@@ -47,8 +50,9 @@ class PlotUtils:
         axs[1, 1].plot(train_ep, train_rewards_sum, label="train")
         axs[1, 1].plot(test_ep, test_rewards_sum, label="test")
 
-        # for ax in axs.flat:
-        #     ax.set(xlabel='x-label', ylabel='y-label')
+        for ax in axs.flat:
+            # ax.set(xlabel='x-label', ylabel='y-label')
+            ax.legend()
 
         # Hide x labels and tick labels for top plots and y ticks for right plots.
         # for ax in axs.flat:

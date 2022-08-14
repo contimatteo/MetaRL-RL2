@@ -59,12 +59,22 @@ class AC(Agent):
 
     #
 
-    def _standardize_advantages(self, advantages: Any) -> Any:
+    def __discount_rewards(self, rewards: np.ndarray) -> tf.Tensor:
+        discounted_rewards, reward_sum = [], 0
+        rewards = rewards.tolist()
+        rewards.reverse()
+        for r in rewards:
+            reward_sum = r + self._gamma * reward_sum
+            discounted_rewards.append(reward_sum)
+        discounted_rewards.reverse()
+        return tf.cast(discounted_rewards, tf.float32)
+
+    def __standardize_advantages(self, advantages: Any) -> Any:
         if self._standardize_advantage_estimate:
             return AdvantageEstimateUtils.standardize(advantages)
         return advantages
 
-    def _clip_gradients_norm(self, a_grads: tf.Tensor, c_grads: tf.Tensor) -> T_TensorsTuple:
+    def __clip_gradients_norm(self, a_grads: tf.Tensor, c_grads: tf.Tensor) -> T_TensorsTuple:
         if self._opt_gradient_clip_norm is not None:
             a_grads, _ = tf.clip_by_global_norm(a_grads, self._opt_gradient_clip_norm)
             c_grads, _ = tf.clip_by_global_norm(c_grads, self._opt_gradient_clip_norm)
@@ -74,14 +84,17 @@ class AC(Agent):
     #
 
     def _advantage_estimates(
-        self, rewards: np.ndarray, state_v: np.ndarray, next_state_v: np.ndarray, dones: T_Tensor
+        self, rewards: np.ndarray, disc_rewards: tf.Tensor, state_v: np.ndarray,
+        next_state_v: np.ndarray, dones: T_Tensor
     ) -> T_Tensor:
         raise NotImplementedError
 
     def _actor_network_loss(self, actions_probs: Any, actions: Any, advantages: Any):
         raise NotImplementedError
 
-    def _critic_network_loss(self, rewards: Any, advantages: Any, state_value: Any):
+    def _critic_network_loss(
+        self, rewards: Any, disc_rewards: tf.Tensor, advantages: tf.Tensor, state_value: Any
+    ):
         raise NotImplementedError
 
     #
@@ -101,6 +114,7 @@ class AC(Agent):
         assert states.shape[0] == rewards.shape[0] == actions.shape[0]
         assert states.shape[0] == next_states.shape[0] == _dones.shape[0]
 
+        disc_rewards = self.__discount_rewards(rewards)
         dones = tf.cast(tf.cast(_dones, tf.int8), tf.float32)
 
         #
@@ -115,12 +129,14 @@ class AC(Agent):
 
             ### Action Advantage Estimates
             advantages = tf.stop_gradient(
-                self._advantage_estimates(rewards, states_val, next_states_val, dones)
+                self._advantage_estimates(
+                    rewards, disc_rewards, states_val, next_states_val, dones
+                )
             )
-            advantages = self._standardize_advantages(advantages)
+            advantages = self.__standardize_advantages(advantages)
 
             actor_loss = self._actor_network_loss(actions_probs, actions, advantages)
-            critic_loss = self._critic_network_loss(rewards, advantages, states_val)
+            critic_loss = self._critic_network_loss(rewards, disc_rewards, advantages, states_val)
 
             assert not tf.math.is_inf(actor_loss) and not tf.math.is_nan(actor_loss)
             assert not tf.math.is_inf(critic_loss) and not tf.math.is_nan(critic_loss)
@@ -128,7 +144,7 @@ class AC(Agent):
         actor_grads = a_tape.gradient(actor_loss, self.actor_network.trainable_variables)
         critic_grads = c_tape.gradient(critic_loss, self.critic_network.trainable_variables)
 
-        actor_grads, critic_grads = self._clip_gradients_norm(actor_grads, critic_grads)
+        actor_grads, critic_grads = self.__clip_gradients_norm(actor_grads, critic_grads)
 
         self.actor_network_optimizer.apply_gradients(
             zip(actor_grads, self.actor_network.trainable_variables)

@@ -26,23 +26,12 @@ class A2C(AC):
 
     #
 
-    def _discount_rewards(self, rewards: np.ndarray) -> tf.Tensor:
-        discounted_rewards, reward_sum = [], 0
-        rewards = rewards.tolist()
-        rewards.reverse()
-        for r in rewards:
-            reward_sum = r + self._gamma * reward_sum
-            discounted_rewards.append(reward_sum)
-        discounted_rewards.reverse()
-        return tf.cast(discounted_rewards, tf.float32)
-
     def _advantage_estimates(
-        self, rewards: np.ndarray, state_v: np.ndarray, next_state_v: np.ndarray, dones: T_Tensor
+        self, rewards: np.ndarray, disc_rewards: tf.Tensor, state_v: np.ndarray,
+        next_state_v: np.ndarray, dones: T_Tensor
     ) -> T_Tensor:
         ### TODO: we have to use the "N-Step Advantage Estimate"
-        advantages = AdvantageEstimateUtils.MC(
-            self._discount_rewards(rewards), tf.stop_gradient(state_v)
-        )
+        advantages = AdvantageEstimateUtils.MC(disc_rewards, tf.stop_gradient(state_v))
         # advantages = AdvantageEstimateUtils.TD(self._gamma, rewards, state_v, next_state_v, dones)
         # advantages = AdvantageEstimateUtils.NStep()
 
@@ -50,9 +39,9 @@ class A2C(AC):
 
     #
 
-    def _critic_network_loss(self, rewards: Any, advantages: Any, state_value: Any):
-        # return self._critic_loss_coef * mean_squared_error(advantages, state_value)
-        disc_rewards = self._discount_rewards(rewards)
+    def _critic_network_loss(
+        self, rewards: Any, disc_rewards: tf.Tensor, advantages: Any, state_value: Any
+    ):
         return self._critic_loss_coef * mean_squared_error(disc_rewards, state_value)
 
     def _actor_network_loss(self, actions_probs: Any, actions: Any, advantages: Any):
