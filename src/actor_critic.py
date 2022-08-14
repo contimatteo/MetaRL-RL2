@@ -23,10 +23,9 @@ from utils import PlotUtils
 RANDOM_SEED = 42
 
 ENV_NAME = "CartPole-v0"
-# ENV_NAME = "MountainCar-v0"
 # ENV_NAME = "LunarLander-v2"
 
-N_EPISODES_TRAIN = 15
+N_EPISODES_TRAIN = 25
 N_EPISODES_TEST = N_EPISODES_TRAIN
 
 N_MAX_EPISODE_STEPS = 10000
