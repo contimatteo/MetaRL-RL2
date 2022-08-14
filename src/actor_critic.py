@@ -26,12 +26,12 @@ ENV_NAME = "CartPole-v0"
 # ENV_NAME = "MountainCar-v0"
 # ENV_NAME = "LunarLander-v2"
 
-N_EPISODES_TRAIN = 10
-N_EPISODES_TEST = 5
+N_EPISODES_TRAIN = 15
+N_EPISODES_TEST = N_EPISODES_TRAIN
 
 N_MAX_EPISODE_STEPS = 10000
 
-TRAIN_BATCH_SIZE = 16
+TRAIN_BATCH_SIZE = None
 
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
@@ -68,15 +68,15 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
     ep_rewards_tot = []
     ep_rewards_avg = []
 
-    if training:
+    if training is True:
         progbar = Bar('[train] Episodes ...', max=n_episodes)
     else:
-        progbar = Bar('[test] Episodes ...', max=n_episodes)
+        progbar = Bar(' [test] Episodes ...', max=n_episodes)
 
     for _ in range(n_episodes):
         state = env.reset()
 
-        if training:
+        if training is True:
             agent.memory.reset()
 
         #
@@ -86,24 +86,19 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
         tot_reward = 0
         next_state = None
 
-        def __run_episodes_replay(done: bool, steps: int) -> bool:
-            if training:
-                return not done and steps < N_MAX_EPISODE_STEPS
-            return not done
-
-        while __run_episodes_replay(done, steps):
+        while not done and steps < N_MAX_EPISODE_STEPS:
             action = int(agent.act(state)[0])
             next_state, reward, done, _ = env.step(action)
 
             steps += 1
-            if training:
+            if training is True:
                 agent.remember(steps, state, action, reward, next_state, done)
 
             tot_reward += reward
             state = next_state
 
         actor_loss, critic_loss = 0, 0
-        if training:
+        if training is True:
             actor_loss, critic_loss = agent.train(batch_size=TRAIN_BATCH_SIZE)
 
         #
@@ -142,26 +137,23 @@ def main():
 
     ###
 
-    a2c_actor_network, a2c_critic_network = ActorCriticNetworks(
-        observation_space, action_space, shared_backbone=False
-    )
-
-    a2c_policy = NetworkPolicy(
-        state_space=observation_space, action_space=action_space, network=a2c_actor_network
-    )
-
-    a2c_actor_network_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
-    a2c_critic_network_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
-
-    a2c = A2C(
-        n_max_episode_steps=N_MAX_EPISODE_STEPS,
-        policy=a2c_policy,
-        actor_network=a2c_actor_network,
-        critic_network=a2c_critic_network,
-        actor_network_opt=a2c_actor_network_opt,
-        critic_network_opt=a2c_critic_network_opt,
-        standardize_advantage_estimate=False
-    )
+    # a2c_actor_network, a2c_critic_network = ActorCriticNetworks(
+    #     observation_space, action_space, shared_backbone=False
+    # )
+    # a2c_policy = NetworkPolicy(
+    #     state_space=observation_space, action_space=action_space, network=a2c_actor_network
+    # )
+    # a2c_actor_network_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
+    # a2c_critic_network_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
+    # a2c = A2C(
+    #     n_max_episode_steps=N_MAX_EPISODE_STEPS,
+    #     policy=a2c_policy,
+    #     actor_network=a2c_actor_network,
+    #     critic_network=a2c_critic_network,
+    #     actor_network_opt=a2c_actor_network_opt,
+    #     critic_network_opt=a2c_critic_network_opt,
+    #     standardize_advantage_estimate=False
+    # )
 
     #
 
