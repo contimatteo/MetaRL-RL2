@@ -65,6 +65,8 @@ class AC(Agent):
         self.actor_network_optimizer = actor_network_opt
         self.critic_network_optimizer = critic_network_opt
 
+        self.meta_memory_states = [None, None]
+
     #
 
     @property
@@ -77,21 +79,22 @@ class AC(Agent):
     def meta_algorithm(self) -> bool:
         raise NotImplementedError
 
-    @property
-    def meta_memory_layer(self) -> Union[LSTM, GRU]:
-        if not self.meta_algorithm:
-            return
+    # @property
+    # def meta_memory_layer(self) -> Union[LSTM, GRU]:
+    #     if not self.meta_algorithm:
+    #         return
 
-        assert self.memory_network is not None
-        memory_layer = self.memory_network.get_layer(name='MetaMemory')
-        assert memory_layer is not None
-        return memory_layer
+    #     assert self.memory_network is not None
+    #     memory_layer = self.memory_network.get_layer(name='MetaMemory')
+    #     assert memory_layer is not None
+    #     return memory_layer
 
     def get_meta_memory_layer_states(self) -> List[tf.Tensor]:
         if not self.meta_algorithm:
             return
 
-        return self.meta_memory_layer.states
+        # return self.meta_memory_layer.states
+        return self.meta_memory_states
 
     def set_meta_memory_layer_states(self, states: List[tf.Tensor]) -> None:
         if not self.meta_algorithm:
@@ -99,13 +102,15 @@ class AC(Agent):
 
         assert isinstance(states, list)
         assert states[0] is not None and states[1] is not None
-        self.meta_memory_layer.states = states
+        # self.meta_memory_layer.states = states
+        self.meta_memory_states = states
 
     def reset_memory_layer_states(self) -> None:
         if not self.meta_algorithm:
             return
 
-        self.meta_memory_layer.states = [None, None]
+        # self.meta_memory_layer.states = [None, None]
+        self.meta_memory_states = np.zeros((2, 512)).tolist()
 
     def trajectories(
         self, states: tf.Tensor, next_states: tf.Tensor, actions: tf.Tensor, rewards: tf.Tensor,
@@ -189,8 +194,8 @@ class AC(Agent):
 
         ### one requirement is that we should have at least 2 batches,
         ### otherwise we cannot update correctly the `meta-memory` states.
-        if self.meta_algorithm and batch_size is not None:
-            assert states.shape[0] > batch_size and (states.shape[0] / batch_size) >= 2
+        # if self.meta_algorithm and batch_size is not None:
+        #     assert states.shape[0] > batch_size and (states.shape[0] / batch_size) >= 2
 
         assert states.shape[0] == rewards.shape[0] == actions.shape[0]
         assert states.shape[0] == next_states.shape[0] == ep_data["done"].shape[0]
@@ -211,7 +216,7 @@ class AC(Agent):
 
         prev_batch_last_action = 0
         prev_batch_last_reward = 0
-        prev_meta_memory_states = self.get_meta_memory_layer_states()
+        # prev_meta_memory_states = self.get_meta_memory_layer_states()
 
         for b_start_idx in range(0, states.shape[0], batch_size):
             b_end_idx = b_start_idx + batch_size
@@ -264,6 +269,7 @@ class AC(Agent):
 
                 if self.meta_algorithm:
                     prev_meta_memory_states = self.memory_network(trajectories, training=False)
+                    self.set_meta_memory_layer_states(prev_meta_memory_states)
 
                 if self.meta_algorithm:
                     # bootstrap_value = 0.  ### FIXME: how can we derive this?
@@ -305,9 +311,9 @@ class AC(Agent):
                 zip(critic_grads, self.critic_network.trainable_variables)
             )
 
-            if self.meta_algorithm:
-                ### INFO: inject previous `meta-memory` layer states (for future batches)
-                self.set_meta_memory_layer_states(prev_meta_memory_states)
+            # if self.meta_algorithm:
+            #     ### INFO: inject previous `meta-memory` layer states (for future batches)
+            #     self.set_meta_memory_layer_states(prev_meta_memory_states)
 
         #
 

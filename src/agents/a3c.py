@@ -89,8 +89,8 @@ class A3C(A2C):
         def __batch_loss_reduction(batch_losses):
             loss = tf.stack(batch_losses)
             ### TODO: which is the right loss reduce operator?
-            # return tf.reduce_sum(loss)
-            return tf.reduce_mean(loss)
+            # return tf.reduce_mean(loss)
+            return tf.reduce_sum(loss)
 
         policy_loss = __batch_loss_reduction(policy_losses)
         entropy_loss = __batch_loss_reduction(entropy_losses)

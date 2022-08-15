@@ -49,13 +49,50 @@ def C_HeadLayer() -> Callable[[tf.Tensor], Layer]:
     return head
 
 
+# def AC_MetaMemoryLayer(name: str) -> Callable[[tf.Tensor], Layer]:
+
+#     def memory(input_x: tf.Tensor) -> Tuple[tf.Tensor, List[tf.Tensor]]:
+#         ### x -> (batch, trajectory_shape)
+#         x = tf.expand_dims(input_x, axis=1)  ### -> (batch, timestamps, trajectory_shape)
+#         ### -> (batch, 1, trajectory_shape)
+#         x, memory_state, carry_state = LSTM(512, return_state=True, stateful=False, name=name)(x)
+#         return x, [memory_state, carry_state]
+
+#     return memory
+
+
 def AC_MetaMemoryLayer(name: str) -> Callable[[tf.Tensor], Layer]:
 
     def memory(input_x: tf.Tensor) -> Tuple[tf.Tensor, List[tf.Tensor]]:
-        ### x -> (batch, trajectory_shape)
-        x = tf.expand_dims(input_x, axis=1)  ### -> (batch, timestamps, trajectory_shape)
-        ### -> (batch, 1, trajectory_shape)
-        x, memory_state, carry_state = LSTM(512, return_state=True, stateful=False, name=name)(x)
+        """
+        I have `input_x` input tensor which has `(batch, trajectory_shape)` shape.
+        My goal is to preserve the LSTM hidden states across the entire batch (without) using
+        the `stateful=True` input parameter. In order to do this, I'm going to reshape the tensor
+        in order to use the `batch_axis` as the `timestamps_axis`. In this way the LSTM layer will
+        preserve the hidden states. Once I've done this, I have also to set the
+        `return_sequences=True` input parameter, in order to obtain the (LSTM cell) output
+        of each trajectory. And the end, I simply reshape the output tensor in order to obtain the
+        initial shape `(batch, trajectory_shape)`.
+        """
+        ### input_x -> (batch, trajectory_shape)
+        ### input_x -> (None, trajectory_shape)
+
+        ### input_x -> (None, trajectory_shape)
+        x = tf.expand_dims(input_x, axis=0)
+        ### x -> (1, None, trajectory_shape)
+
+        ### LSTM (input) -> (batch, timestamps, trajectory_shape)
+        ### x -> (1, None, trajectory_shape)
+        x, memory_state, carry_state = LSTM(
+            512, return_state=True, return_sequences=True, name=name
+        )(x)
+        ### LSTM (out) -> (batch, timestamps, trajectory_shape)
+        ### x -> (1, None, trajectory_shape)
+
+        ### x -> (1, None, trajectory_shape)
+        x = tf.squeeze(x, axis=0)
+        ### x -> (None, trajectory_shape)
+
         return x, [memory_state, carry_state]
 
     return memory

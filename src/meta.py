@@ -34,7 +34,7 @@ N_EPISODES_TRAIN = 1
 N_EPISODES_TEST = N_EPISODES_TRAIN
 N_MAX_EPISODE_STEPS = 100
 
-TRAIN_BATCH_SIZE = 32
+TRAIN_BATCH_SIZE = 25
 
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
@@ -167,8 +167,8 @@ def main():
         # BanditTwoArmedDependentEasy(),
         # BanditTwoArmedDependentMedium(),
         # BanditTwoArmedDependentHard(),
-        BanditTwoArmedDependentEasy(),
-        BanditTwoArmedDependentMedium(),
+        BanditTwoArmedDependentHard(),
+        BanditTwoArmedDependentHard(),
         BanditTwoArmedDependentHard(),
     ]
 
