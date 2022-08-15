@@ -1,18 +1,25 @@
-from typing import Tuple
+from typing import Tuple, Optional
 
 import gym
 
 from tensorflow.python.keras import Model
-from tensorflow.python.keras.layers import Input, Flatten, Concatenate, Reshape
+from tensorflow.python.keras.layers import Input
+from tensorflow.python.keras.layers import Flatten
+from tensorflow.python.keras.layers import Concatenate
 
 from networks.layers import A_HeadLayer, C_HeadLayer
-from networks.layers import AC_EncoderLayer, AC_BackboneLayer, AC_MetaMemoryLayer
+from networks.layers import AC_EncoderLayer
+from networks.layers import AC_BackboneLayer
+from networks.layers import AC_MetaMemoryLayer
 
 ###
 
 
-def MetaActorCriticNetworks(obs_space: gym.Space, action_space: gym.Space,
-                            batch_size: int) -> Tuple[Model, Model]:
+def MetaActorCriticNetworks(
+    obs_space: gym.Space,
+    action_space: gym.Space,
+    shared_backbone: bool,
+) -> Tuple[Model, Model]:
     ### TODO: support also 'continuous' action space
     assert isinstance(action_space, gym.spaces.discrete.Discrete)
     discrete = True
@@ -20,7 +27,7 @@ def MetaActorCriticNetworks(obs_space: gym.Space, action_space: gym.Space,
     obs_shape = obs_space.shape
 
     ### input
-    input_obs = Input(shape=obs_shape, batch_size=batch_size, name="Input_Observations")
+    input_obs = Input(shape=obs_shape, name="Input_Observations")
     input_prev_action = Input(shape=(1, ), name="Input_PreviousAction")
     input_prev_reward = Input(shape=(1, ), name="Input_PreviousReward")
     ### encoder
@@ -28,7 +35,11 @@ def MetaActorCriticNetworks(obs_space: gym.Space, action_space: gym.Space,
     ### meta-memory
     l_memory = AC_MetaMemoryLayer(name="MetaMemory")
     ### backbone
-    l_shared_backbone = AC_BackboneLayer()
+    if shared_backbone:
+        l_backbone_shared = AC_BackboneLayer()
+    else:
+        l_backbone_a = AC_BackboneLayer()
+        l_backbone_c = AC_BackboneLayer()
     ### head
     l_actor_head = A_HeadLayer(action_space.n, discrete=discrete)
     l_critic_head = C_HeadLayer()
@@ -44,11 +55,17 @@ def MetaActorCriticNetworks(obs_space: gym.Space, action_space: gym.Space,
     out_memory, out_memory_states = l_memory(input_memory)
 
     ### backbone
-    out_backbone = l_shared_backbone(out_memory)
+    if shared_backbone:
+        out_backbone = l_backbone_shared(out_memory)
+        out_backbone_a = out_backbone
+        out_backbone_c = out_backbone
+    else:
+        out_backbone_a = l_backbone_a(out_memory)
+        out_backbone_c = l_backbone_c(out_memory)
 
     ### heads
-    out_actor = l_actor_head(out_backbone)
-    out_critic = l_critic_head(out_backbone)
+    out_actor = l_actor_head(out_backbone_a)
+    out_critic = l_critic_head(out_backbone_c)
 
     #
 
