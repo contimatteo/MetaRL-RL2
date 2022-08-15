@@ -36,7 +36,7 @@ class AC(Agent):
         gae_lambda: float = 0.9,
         critic_loss_coef: float = 0.5,
         entropy_loss_coef: float = 1e-3,
-        standardize_advantage_estimate: bool = False,
+        standardize_advantage_estimate: bool = True,
     ) -> None:
         super(AC, self).__init__(n_max_episode_steps=n_max_episode_steps, policy=policy)
 
@@ -171,10 +171,12 @@ class AC(Agent):
     def train(self, batch_size: Optional[int] = None, shuffle: bool = False) -> Any:
         ep_data = self.memory.all()
 
-        states = ep_data["states"]
-        rewards = ep_data["rewards"]
-        actions = ep_data["actions"]
-        next_states = ep_data["next_states"]
+        states = ep_data["states"].copy()
+        rewards = ep_data["rewards"].copy()
+        actions = ep_data["actions"].copy()
+        next_states = ep_data["next_states"].copy()
+
+        self.memory.reset()
 
         ### one requirement is that we should have at least 2 batches,
         ### otherwise we cannot update correctly the `meta-memory` states.
@@ -269,7 +271,10 @@ class AC(Agent):
                 )
                 advantages = self.__standardize_advantages(advantages)
 
-                actor_loss = self._actor_network_loss(actions_probs, _actions, advantages)
+                # deltas = advantages
+                deltas = tf.math.subtract(advantages, states_val)
+
+                actor_loss = self._actor_network_loss(actions_probs, _actions, deltas)
                 critic_loss = self._critic_network_loss(
                     _rewards, _disc_rewards, advantages, states_val
                 )

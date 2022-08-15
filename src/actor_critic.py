@@ -10,7 +10,7 @@ import tensorflow as tf
 from gym.spaces import Discrete
 from loguru import logger
 from progress.bar import Bar
-# from tensorflow.python.keras.optimizers import rmsprop_v2
+from tensorflow.python.keras.optimizers import rmsprop_v2
 from tensorflow.python.keras.optimizers import adam_v2
 
 from agents import AC
@@ -37,9 +37,9 @@ ENV_NAME = "Ant-v4"
 N_EPISODES_TRAIN = 50
 N_EPISODES_TEST = 50
 
-N_MAX_EPISODE_STEPS = 100
+N_MAX_EPISODE_STEPS = 50
 
-TRAIN_BATCH_SIZE = 8
+TRAIN_BATCH_SIZE = 4
 
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
@@ -138,7 +138,8 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool, render: bool 
         ep_actor_losses.append(actor_loss)
         ep_critic_losses.append(critic_loss)
         ep_rewards_tot.append(tot_reward)
-        ep_rewards_avg.append(np.mean(ep_rewards_tot[-100:]))
+        # ep_rewards_avg.append(np.mean(ep_rewards_tot[-int(N_MAX_EPISODE_STEPS / 5):]))
+        ep_rewards_avg.append(np.mean(ep_rewards_tot))
         ep_dones_step.append(steps)
 
         progbar.next()
@@ -210,8 +211,10 @@ def main():
         action_buonds=action_bounds
     )
 
-    a3c_actor_network_opt = adam_v2.Adam(learning_rate=1e-4)
-    a3c_critic_network_opt = adam_v2.Adam(learning_rate=1e-4)
+    # a3c_actor_network_opt = adam_v2.Adam(learning_rate=1e-5)
+    # a3c_critic_network_opt = adam_v2.Adam(learning_rate=1e-5)
+    a3c_actor_network_opt = rmsprop_v2.RMSProp(learning_rate=5e-5)
+    a3c_critic_network_opt = rmsprop_v2.RMSProp(learning_rate=5e-5)
 
     a3c = A3C(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
@@ -220,13 +223,13 @@ def main():
         critic_network=a3c_critic_network,
         actor_network_opt=a3c_actor_network_opt,
         critic_network_opt=a3c_critic_network_opt,
-        standardize_advantage_estimate=True,
+        critic_loss_coef=1.,
     )
 
     tf.keras.backend.clear_session()
     a3c_train_history = run(N_EPISODES_TRAIN, env, a3c, training=True)
     a3c_test_history = run(N_EPISODES_TEST, env, a3c, training=False)
-    run(5, env, a3c, training=False, render=True)
+    run(2, env, a3c, training=False, render=True)
     __plot(a3c.name, a3c_train_history, a3c_test_history)
     print("\n")
 

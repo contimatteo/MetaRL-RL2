@@ -1,4 +1,4 @@
-from typing import Any, Union
+from typing import Any, Union, Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -142,7 +142,7 @@ class AdvantageEstimateUtils():
         state_v: T_ArrayOrTensor,
         next_state_v: T_ArrayOrTensor,
         dones: T_ArrayOrTensor,
-    ) -> tf.Tensor:
+    ) -> Tuple[tf.Tensor, tf.Tensor]:
         """
         ### Generalized Advantage Estimate
         `δ = r(s,a,s′) + γVφ(s′) − Vφ(s)` \n
@@ -165,7 +165,10 @@ class AdvantageEstimateUtils():
             delta = _rewards[t] + (gamma * not_dones[t] * next_state_v[t]) - state_v[t]
             advantages[t] = delta + (gamma * gae_lambda * advantages[t + 1] * not_dones[t])
 
-        return tf.convert_to_tensor(advantages, dtype=tf.float32)
+        returns = tf.convert_to_tensor(advantages + state_v, dtype=tf.float32)
+        advantages = tf.convert_to_tensor(advantages, dtype=tf.float32)
+
+        return advantages, returns
 
     @staticmethod
     def standardize(advantages: tf.Tensor) -> tf.Tensor:
