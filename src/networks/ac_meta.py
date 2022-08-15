@@ -1,12 +1,16 @@
-from typing import Tuple
+from typing import Tuple, Optional
 
 import gym
 
 from tensorflow.python.keras import Model
-from tensorflow.python.keras.layers import Input, Flatten, Concatenate, Reshape
+from tensorflow.python.keras.layers import Input
+from tensorflow.python.keras.layers import Flatten
+from tensorflow.python.keras.layers import Concatenate
 
 from networks.layers import A_HeadLayer, C_HeadLayer
-from networks.layers import AC_EncoderLayer, AC_BackboneLayer, AC_MetaMemoryLayer
+from networks.layers import AC_EncoderLayer
+from networks.layers import AC_BackboneLayer
+from networks.layers import AC_MetaMemoryLayer
 
 ###
 

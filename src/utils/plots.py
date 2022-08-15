@@ -29,12 +29,12 @@ class PlotUtils:
         test_rewards_avg = history["test_reward_avg"]
         test_rewards_sum = history["test_reward_sum"]
 
-        train_actor_loss = PlotUtils.__interpolate(train_ep, train_actor_loss, k=3)
-        train_critic_loss = PlotUtils.__interpolate(train_ep, train_critic_loss, k=3)
-        train_rewards_avg = PlotUtils.__interpolate(train_ep, train_rewards_avg, k=3)
-        train_rewards_sum = PlotUtils.__interpolate(train_ep, train_rewards_sum, k=3)
-        test_rewards_avg = PlotUtils.__interpolate(test_ep, test_rewards_avg, k=3)
-        test_rewards_sum = PlotUtils.__interpolate(test_ep, test_rewards_sum, k=3)
+        train_actor_loss = PlotUtils.__interpolate(train_ep, train_actor_loss, k=5)
+        train_critic_loss = PlotUtils.__interpolate(train_ep, train_critic_loss, k=5)
+        train_rewards_avg = PlotUtils.__interpolate(train_ep, train_rewards_avg, k=5)
+        train_rewards_sum = PlotUtils.__interpolate(train_ep, train_rewards_sum, k=5)
+        test_rewards_avg = PlotUtils.__interpolate(test_ep, test_rewards_avg, k=5)
+        test_rewards_sum = PlotUtils.__interpolate(test_ep, test_rewards_sum, k=5)
 
         axs[0, 0].plot(train_ep, train_actor_loss, 'tab:red')
         axs[0, 0].set_title('[train] Actor Loss (avg)')

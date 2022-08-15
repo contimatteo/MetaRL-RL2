@@ -32,7 +32,7 @@ N_EPISODES_TRAIN = 25
 N_EPISODES_TEST = N_EPISODES_TRAIN
 N_MAX_EPISODE_STEPS = 10000
 
-TRAIN_BATCH_SIZE = None
+TRAIN_BATCH_SIZE = 32
 
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
@@ -89,6 +89,9 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
         prev_action = 0
         prev_reward = 0.
 
+        ### INFO: reset the RNN hidden states
+        agent.reset_memory_layer_states()
+
         while not done and steps < N_MAX_EPISODE_STEPS:
             if agent.meta_algorithm:
                 trajectory = [state, prev_action, prev_reward]
@@ -117,7 +120,10 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
         ep_actor_losses.append(actor_loss)
         ep_critic_losses.append(critic_loss)
         ep_rewards_tot.append(tot_reward)
-        ep_rewards_avg.append(np.mean(ep_rewards_tot[-100:]))
+        if training is True:
+            ep_rewards_avg.append(np.mean(ep_rewards_tot[-100:]))
+        else:
+            ep_rewards_avg.append(np.mean(ep_rewards_tot))
 
         progbar.next()
 
@@ -202,7 +208,7 @@ def main():
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     # a3cmeta_actor_nn, a3cmeta_critic_nn, a3cmeta_memory_nn = MetaActorCriticNetworks(
-    #     observation_space, action_space, shared_backbone=False
+    #     observation_space, action_space, shared_backbone=True
     # )
 
     # a3cmeta_policy = NetworkMetaPolicy(
