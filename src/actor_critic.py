@@ -89,6 +89,9 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
         prev_action = 0
         prev_reward = 0.
 
+        ### INFO: reset the RNN hidden states
+        agent.reset_memory_layer_states()
+
         while not done and steps < N_MAX_EPISODE_STEPS:
             if agent.meta_algorithm:
                 trajectory = [state, prev_action, prev_reward]
@@ -205,7 +208,7 @@ def main():
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     # a3cmeta_actor_nn, a3cmeta_critic_nn, a3cmeta_memory_nn = MetaActorCriticNetworks(
-    #     observation_space, action_space, batch_size=TRAIN_BATCH_SIZE
+    #     observation_space, action_space, shared_backbone=True
     # )
 
     # a3cmeta_policy = NetworkMetaPolicy(

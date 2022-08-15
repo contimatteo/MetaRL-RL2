@@ -18,7 +18,7 @@ from networks.layers import AC_MetaMemoryLayer
 def MetaActorCriticNetworks(
     obs_space: gym.Space,
     action_space: gym.Space,
-    batch_size: Optional[int],
+    shared_backbone: bool,
 ) -> Tuple[Model, Model]:
     ### TODO: support also 'continuous' action space
     assert isinstance(action_space, gym.spaces.discrete.Discrete)
@@ -35,11 +35,11 @@ def MetaActorCriticNetworks(
     ### meta-memory
     l_memory = AC_MetaMemoryLayer(name="MetaMemory")
     ### backbone
-    # if shared_backbone:
-    #     l_backbone_shared = AC_BackboneLayer()
-    # else:
-    #     l_backbone_a = AC_BackboneLayer()
-    #     l_backbone_c = AC_BackboneLayer()
+    if shared_backbone:
+        l_backbone_shared = AC_BackboneLayer()
+    else:
+        l_backbone_a = AC_BackboneLayer()
+        l_backbone_c = AC_BackboneLayer()
     ### head
     l_actor_head = A_HeadLayer(action_space.n, discrete=discrete)
     l_critic_head = C_HeadLayer()
@@ -55,17 +55,17 @@ def MetaActorCriticNetworks(
     out_memory, out_memory_states = l_memory(input_memory)
 
     ### backbone
-    # if shared_backbone:
-    #     out_backbone = l_backbone_shared(out_memory)
-    #     out_backbone_a = out_backbone
-    #     out_backbone_c = out_backbone
-    # else:
-    #     out_backbone_a = l_backbone_a(out_memory)
-    #     out_backbone_c = l_backbone_c(out_memory)
+    if shared_backbone:
+        out_backbone = l_backbone_shared(out_memory)
+        out_backbone_a = out_backbone
+        out_backbone_c = out_backbone
+    else:
+        out_backbone_a = l_backbone_a(out_memory)
+        out_backbone_c = l_backbone_c(out_memory)
 
     ### heads
-    out_actor = l_actor_head(out_memory)
-    out_critic = l_critic_head(out_memory)
+    out_actor = l_actor_head(out_backbone_a)
+    out_critic = l_critic_head(out_backbone_c)
 
     #
 

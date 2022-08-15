@@ -84,9 +84,9 @@ def run(n_trials: int, n_episodes: int, envs: List[gym.Env], agent: MetaA3C, tra
 
         #
 
-        if training is True:
-            ### INFO: after each trial, we have to reset the RNN hidden states
-            agent.reset_memory_layer_states()
+        # if training is True:
+        ### INFO: after each trial, we have to reset the RNN hidden states
+        agent.reset_memory_layer_states()
 
         for _ in range(n_episodes):
             state = env.reset()
@@ -229,7 +229,7 @@ def main():
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     a3cmeta_actor_nn, a3cmeta_critic_nn, a3cmeta_memory_nn = MetaActorCriticNetworks(
-        observation_space, action_space, batch_size=TRAIN_BATCH_SIZE
+        observation_space, action_space, shared_backbone=True
     )
 
     a3cmeta_policy = NetworkMetaPolicy(
