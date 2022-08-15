@@ -5,6 +5,8 @@ import tensorflow as tf
 from tensorflow.python.keras.layers import Layer
 from tensorflow.python.keras.layers import Dense
 from tensorflow.python.keras.layers import LSTM
+from tensorflow.python.keras.layers import Dropout
+from tensorflow.python.keras.regularizers import l1_l2
 
 ###
 
@@ -12,8 +14,17 @@ from tensorflow.python.keras.layers import LSTM
 def AC_BackboneLayer() -> Callable[[tf.Tensor], Layer]:
 
     def backbone(input_x: tf.Tensor) -> tf.Tensor:
-        x = Dense(512, activation="relu")(input_x)
-        x = Dense(512, activation="relu")(x)
+        x = Dense(
+            512, activation="relu", kernel_initializer='he_uniform', kernel_regularizer=l1_l2(0.01)
+        )(input_x)
+        # x = Dropout(.2)(x)
+        x = Dense(
+            512, activation="tanh", kernel_initializer='he_uniform', kernel_regularizer=l1_l2(0.01)
+        )(x)
+        # x = Dropout(.2)(x)
+        x = Dense(
+            512, activation="relu", kernel_initializer='he_uniform', kernel_regularizer=l1_l2(0.01)
+        )(x)
         return x
 
     return backbone
@@ -32,7 +43,9 @@ def A_HeadLayer(n_actions: int, discrete: bool) -> Callable[[tf.Tensor], Layer]:
     activation = "softmax" if discrete else "linear"
 
     def head(input_x: tf.Tensor) -> tf.Tensor:
-        x = Dense(512, activation="relu")(input_x)
+        x = Dense(64, activation="relu", kernel_initializer='he_uniform')(input_x)
+        x = Dense(64, activation="tanh", kernel_initializer='he_uniform')(x)
+        x = Dense(64, activation="relu", kernel_initializer='he_uniform')(x)
         x = Dense(n_actions, activation=activation)(x)
         return x
 
@@ -42,7 +55,9 @@ def A_HeadLayer(n_actions: int, discrete: bool) -> Callable[[tf.Tensor], Layer]:
 def C_HeadLayer() -> Callable[[tf.Tensor], Layer]:
 
     def head(input_x: tf.Tensor) -> tf.Tensor:
-        x = Dense(512, activation="relu")(input_x)
+        x = Dense(64, activation="relu", kernel_initializer='he_uniform')(input_x)
+        x = Dense(64, activation="tanh", kernel_initializer='he_uniform')(x)
+        x = Dense(64, activation="relu", kernel_initializer='he_uniform')(x)
         x = Dense(1, activation='linear')(x)
         return x
 

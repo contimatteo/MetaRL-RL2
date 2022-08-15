@@ -24,9 +24,10 @@ class NetworkPolicy(Policy):
         state_space: gym.Space,
         action_space: gym.Space,
         network: Model,
-        action_sampling_mode: str = 'distribution'
+        action_buonds: list = None,
+        action_sampling_mode: str = 'distribution',
     ):
-        super().__init__(state_space, action_space)
+        super().__init__(state_space, action_space, action_buonds)
 
         assert action_sampling_mode in ACT_MODES
 
@@ -34,12 +35,18 @@ class NetworkPolicy(Policy):
         self.action_sampling_mode = action_sampling_mode
 
     def _act(self, obs: Any, **kwargs) -> np.ndarray:
-        act_probs = self.policy_network(obs, training=False).numpy()
+        _actions = self.policy_network(obs, training=False)
+
+        if not self._is_discrete:
+            return _actions
+
+        act_probs = _actions.numpy()
 
         if self.action_sampling_mode == "distribution":
-            distribution = tfp.distributions.Categorical(
-                probs=act_probs + .000001, dtype=tf.float32
-            )
+            # distribution = tfp.distributions.Categorical(
+            #     probs=act_probs + .000001, dtype=tf.float32
+            # )
+            distribution = tfp.distributions.Categorical(logits=act_probs, dtype=tf.float32)
 
             actions = distribution.sample().numpy()
             assert actions.shape[0] == obs.shape[0]

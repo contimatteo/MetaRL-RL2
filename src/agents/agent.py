@@ -3,6 +3,8 @@ from typing import Any
 import gym
 import numpy as np
 
+from gym.spaces import Discrete
+
 from memory import SequentialMemory
 from policies import Policy
 
@@ -37,6 +39,10 @@ class Agent():
         assert isinstance(n_actions, int) and n_actions > 0
         return n_actions
 
+    @property
+    def _discrete_action_space(self) -> bool:
+        return isinstance(self.action_space, Discrete)
+
     #
 
     def env_sync(self, env: gym.Env) -> None:
@@ -52,7 +58,7 @@ class Agent():
 
         assert isinstance(step, int)
         assert isinstance(state, np.ndarray)
-        assert isinstance(action, int)
+        # assert isinstance(action, int)
         assert isinstance(reward, float) or isinstance(reward, int)
         assert isinstance(next_state, np.ndarray)
         assert isinstance(done, bool)

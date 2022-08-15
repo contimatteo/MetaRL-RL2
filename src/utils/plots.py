@@ -25,16 +25,16 @@ class PlotUtils:
         train_actor_loss = history["train_actor_loss"]
         train_critic_loss = history["train_critic_loss"]
         train_rewards_avg = history["train_reward_avg"]
-        train_rewards_sum = history["train_reward_sum"]
+        train_dones_step = history["train_done_step"]
         test_rewards_avg = history["test_reward_avg"]
-        test_rewards_sum = history["test_reward_sum"]
+        test_dones_step = history["test_done_step"]
 
         train_actor_loss = PlotUtils.__interpolate(train_ep, train_actor_loss, k=5)
         train_critic_loss = PlotUtils.__interpolate(train_ep, train_critic_loss, k=5)
         train_rewards_avg = PlotUtils.__interpolate(train_ep, train_rewards_avg, k=5)
-        train_rewards_sum = PlotUtils.__interpolate(train_ep, train_rewards_sum, k=5)
+        train_dones_step = PlotUtils.__interpolate(train_ep, train_dones_step, k=5)
         test_rewards_avg = PlotUtils.__interpolate(test_ep, test_rewards_avg, k=5)
-        test_rewards_sum = PlotUtils.__interpolate(test_ep, test_rewards_sum, k=5)
+        test_dones_step = PlotUtils.__interpolate(test_ep, test_dones_step, k=5)
 
         axs[0, 0].plot(train_ep, train_actor_loss, 'tab:red')
         axs[0, 0].set_title('[train] Actor Loss (avg)')
@@ -47,9 +47,9 @@ class PlotUtils:
         axs[1, 0].plot(test_ep, test_rewards_avg, label="test")
         axs[1, 0].legend()
 
-        axs[1, 1].set_title('Rewards (sum)')
-        axs[1, 1].plot(train_ep, train_rewards_sum, label="train")
-        axs[1, 1].plot(test_ep, test_rewards_sum, label="test")
+        axs[1, 1].set_title('Dones (#steps)')
+        axs[1, 1].plot(train_ep, train_dones_step, label="train")
+        axs[1, 1].plot(test_ep, test_dones_step, label="test")
         axs[1, 1].legend()
 
         # for ax in axs.flat:

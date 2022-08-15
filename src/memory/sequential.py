@@ -1,3 +1,5 @@
+from typing import Dict
+
 import tensorflow as tf
 import numpy as np
 
@@ -35,7 +37,7 @@ class SequentialMemory():
         self._memory["next_states"].append(data["next_state"])
         self._memory["done"].append(data["done"])
 
-    def all(self) -> list:
+    def all(self) -> Dict[str, np.ndarray]:
         # return self._memory
         return {
             "steps": self._memory["steps"],
