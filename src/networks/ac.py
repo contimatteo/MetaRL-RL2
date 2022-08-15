@@ -20,7 +20,7 @@ def ActorCriticNetworks(
     assert isinstance(action_space, gym.spaces.discrete.Discrete)
     discrete = True
 
-    input_shape = obs_space.shape
+    input_shape = obs_space.shape if len(obs_space.shape) > 0 else (1, )
 
     ### input
     l_input = Input(shape=input_shape)

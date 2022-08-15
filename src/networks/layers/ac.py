@@ -12,8 +12,8 @@ from tensorflow.python.keras.layers import LSTM
 def AC_BackboneLayer() -> Callable[[tf.Tensor], Layer]:
 
     def backbone(input_x: tf.Tensor) -> tf.Tensor:
-        x = Dense(512, activation="relu", kernel_initializer='he_uniform')(input_x)
-        x = Dense(512, activation="relu", kernel_initializer='he_uniform')(x)
+        x = Dense(512, activation="relu")(input_x)
+        x = Dense(512, activation="relu")(x)
         return x
 
     return backbone
@@ -32,8 +32,8 @@ def A_HeadLayer(n_actions: int, discrete: bool) -> Callable[[tf.Tensor], Layer]:
     activation = "softmax" if discrete else "linear"
 
     def head(input_x: tf.Tensor) -> tf.Tensor:
-        x = Dense(512, activation="relu", kernel_initializer='he_uniform')(input_x)
-        x = Dense(n_actions, activation=activation, kernel_initializer='he_uniform')(x)
+        x = Dense(512, activation="relu")(input_x)
+        x = Dense(n_actions, activation=activation)(x)
         return x
 
     return head
@@ -42,7 +42,7 @@ def A_HeadLayer(n_actions: int, discrete: bool) -> Callable[[tf.Tensor], Layer]:
 def C_HeadLayer() -> Callable[[tf.Tensor], Layer]:
 
     def head(input_x: tf.Tensor) -> tf.Tensor:
-        x = Dense(512, activation="relu", kernel_initializer='he_uniform')(input_x)
+        x = Dense(512, activation="relu")(input_x)
         x = Dense(1, activation='linear')(x)
         return x
 

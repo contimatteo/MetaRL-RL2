@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Optional
 
 import gym
 
@@ -14,7 +14,7 @@ from networks.layers import AC_EncoderLayer, AC_BackboneLayer, AC_MetaMemoryLaye
 def MetaActorCriticNetworks(
     obs_space: gym.Space,
     action_space: gym.Space,
-    shared_backbone: bool,
+    batch_size: Optional[int],
 ) -> Tuple[Model, Model]:
     ### TODO: support also 'continuous' action space
     assert isinstance(action_space, gym.spaces.discrete.Discrete)
