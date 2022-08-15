@@ -3,6 +3,7 @@ import utils.env_setup
 
 import gym
 import matplotlib.pyplot as plt
+import metagym.quadrotor
 import numpy as np
 import random
 import tensorflow as tf
@@ -29,17 +30,17 @@ from utils import PlotUtils
 
 RANDOM_SEED = 42
 
-# ENV_NAME = "CartPole-v0"
+ENV_NAME = "CartPole-v0"
 # ENV_NAME = "LunarLander-v2"
 # ENV_NAME = "BipedalWalker-v3"
-ENV_NAME = "Ant-v4"
+# ENV_NAME = "Ant-v4"
 
-N_EPISODES_TRAIN = 50
+N_EPISODES_TRAIN = 100
 N_EPISODES_TEST = 50
 
-N_MAX_EPISODE_STEPS = 50
+N_MAX_EPISODE_STEPS = 250
 
-TRAIN_BATCH_SIZE = 4
+TRAIN_BATCH_SIZE = 64
 
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
@@ -139,7 +140,8 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool, render: bool 
         ep_critic_losses.append(critic_loss)
         ep_rewards_tot.append(tot_reward)
         # ep_rewards_avg.append(np.mean(ep_rewards_tot[-int(N_MAX_EPISODE_STEPS / 5):]))
-        ep_rewards_avg.append(np.mean(ep_rewards_tot))
+        # ep_rewards_avg.append(np.mean(ep_rewards_tot))
+        ep_rewards_avg.append(np.mean(ep_rewards_tot[-25:]))
         ep_dones_step.append(steps)
 
         progbar.next()
@@ -164,7 +166,8 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool, render: bool 
 
 
 def main():
-    env = gym.make(ENV_NAME)
+    # env = gym.make(ENV_NAME)
+    env = gym.make("quadrotor-v0", task="no_collision")
 
     observation_space = env.observation_space
     action_space = env.action_space
@@ -213,8 +216,8 @@ def main():
 
     # a3c_actor_network_opt = adam_v2.Adam(learning_rate=1e-5)
     # a3c_critic_network_opt = adam_v2.Adam(learning_rate=1e-5)
-    a3c_actor_network_opt = rmsprop_v2.RMSProp(learning_rate=5e-5)
-    a3c_critic_network_opt = rmsprop_v2.RMSProp(learning_rate=5e-5)
+    a3c_actor_network_opt = rmsprop_v2.RMSProp(learning_rate=1e-4)
+    a3c_critic_network_opt = rmsprop_v2.RMSProp(learning_rate=1e-4)
 
     a3c = A3C(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
@@ -223,7 +226,6 @@ def main():
         critic_network=a3c_critic_network,
         actor_network_opt=a3c_actor_network_opt,
         critic_network_opt=a3c_critic_network_opt,
-        critic_loss_coef=1.,
     )
 
     tf.keras.backend.clear_session()

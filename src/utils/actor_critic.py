@@ -165,10 +165,11 @@ class AdvantageEstimateUtils():
             delta = _rewards[t] + (gamma * not_dones[t] * next_state_v[t]) - state_v[t]
             advantages[t] = delta + (gamma * gae_lambda * advantages[t + 1] * not_dones[t])
 
-        returns = tf.convert_to_tensor(advantages + state_v, dtype=tf.float32)
+        # returns = tf.convert_to_tensor(advantages + state_v, dtype=tf.float32)
         advantages = tf.convert_to_tensor(advantages, dtype=tf.float32)
 
-        return advantages, returns
+        # return advantages, returns
+        return advantages, None
 
     @staticmethod
     def standardize(advantages: tf.Tensor) -> tf.Tensor:

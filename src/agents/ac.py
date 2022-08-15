@@ -178,11 +178,6 @@ class AC(Agent):
 
         self.memory.reset()
 
-        ### one requirement is that we should have at least 2 batches,
-        ### otherwise we cannot update correctly the `meta-memory` states.
-        # if self.meta_algorithm and batch_size is not None:
-        #     assert states.shape[0] > batch_size and (states.shape[0] / batch_size) >= 2
-
         assert states.shape[0] == rewards.shape[0] == actions.shape[0]
         assert states.shape[0] == next_states.shape[0] == ep_data["done"].shape[0]
 
@@ -191,7 +186,30 @@ class AC(Agent):
 
         assert states.shape[0] == disc_rewards.shape[0] == dones.shape[0]
 
-        #
+        ### ADVANTAGES
+
+        trajectories, next_trajectories = self.trajectories(
+            states, next_states, actions, rewards, 0, 0
+        )
+
+        states_val = self.critic_network(trajectories, training=False)
+        if self.meta_algorithm:
+            # bootstrap_value = 0.  ### FIXME: how can we derive this?
+            # next_states_val = states_val + bootstrap_value
+            next_states_val = self.critic_network(next_trajectories, training=False)
+        else:
+            next_states_val = self.critic_network(next_states, training=False)
+
+        states_val = tf.reshape(states_val, (len(states_val)))
+        next_states_val = tf.reshape(next_states_val, (len(next_states_val)))
+
+        ### Action Advantage Estimates
+        advantages = self._advantage_estimates(
+            rewards, disc_rewards, states_val, next_states_val, dones
+        )
+        advantages = self.__standardize_advantages(advantages)
+
+        ### TRAIN (batches)
 
         indexes = np.arange(states.shape[0])
 
@@ -199,10 +217,6 @@ class AC(Agent):
             np.random.shuffle(indexes)
         if batch_size is None:
             batch_size = states.shape[0]
-
-        prev_batch_last_action = 0
-        prev_batch_last_reward = 0
-        meta_memory_states = [None, None]
 
         for b_start_idx in range(0, states.shape[0], batch_size):
             b_end_idx = b_start_idx + batch_size
@@ -214,69 +228,47 @@ class AC(Agent):
             _actions = tf.gather(actions, b_idxs, axis=0)
             _next_states = tf.gather(next_states, b_idxs, axis=0)
             _disc_rewards = tf.gather(disc_rewards, b_idxs, axis=0)
+            _trajectories = tf.gather(trajectories, b_idxs, axis=0)
+            _next_trajectories = tf.gather(next_trajectories, b_idxs, axis=0)
+            _advantages = tf.gather(advantages, b_idxs, axis=0)
 
             assert _states.shape[0] == _dones.shape[0]
             assert _states.shape[0] == _rewards.shape[0]
             assert _states.shape[0] == _actions.shape[0]
             assert _states.shape[0] == _next_states.shape[0]
             assert _states.shape[0] == _disc_rewards.shape[0]
+            assert _states.shape[0] == _trajectories.shape[0]
+            assert _states.shape[0] == _next_trajectories.shape[0]
+            assert _states.shape[0] == _advantages.shape[0]
 
             #
 
-            trajectories, next_trajectories = self.trajectories(
-                _states, _next_states, _actions, _rewards, prev_batch_last_action,
-                prev_batch_last_reward
-            )
-
-            prev_batch_last_action = _actions[-1]
-            prev_batch_last_reward = _rewards[-1]
-
-            if self.meta_algorithm:
-                assert b_start_idx < 1 or meta_memory_states[0] is not None
-                assert b_start_idx < 1 or meta_memory_states[1] is not None
-                ### assert that all elements of the trajectories have the same batch_size dimension
-                for i in range(len(trajectories) - 1):
-                    assert trajectories[i].shape[0] == next_trajectories[i].shape[0]
-                    assert trajectories[i].shape[0] == trajectories[i + 1].shape[0]
-                    assert next_trajectories[i].shape[0] == next_trajectories[i + 1].shape[0]
-            else:
-                assert trajectories.shape == _states.shape
-                assert next_trajectories.shape == _next_states.shape
+            # if self.meta_algorithm:
+            #     # assert b_start_idx < 1 or meta_memory_states[0] is not None
+            #     # assert b_start_idx < 1 or meta_memory_states[1] is not None
+            #     ### assert that all elements of the trajectories have the same batch_size dimension
+            #     for i in range(len(_trajectories) - 1):
+            #         assert _trajectories[i].shape[0] == _next_trajectories[i].shape[0]
+            #         assert _trajectories[i].shape[0] == _trajectories[i + 1].shape[0]
+            #         assert _next_trajectories[i].shape[0] == _next_trajectories[i + 1].shape[0]
+            # else:
+            #     assert _trajectories.shape == _states.shape
+            #     assert _next_trajectories.shape == _next_states.shape
 
             #
 
             with tf.GradientTape() as a_tape, tf.GradientTape() as c_tape:
-                actions_probs = self.actor_network(trajectories, training=True)
-                states_val = self.critic_network(trajectories, training=True)
+                _states_val = self.critic_network(_trajectories, training=True)
+                actions_probs = self.actor_network(_trajectories, training=True)
 
-                if self.meta_algorithm:
-                    # bootstrap_value = 0.  ### FIXME: how can we derive this?
-                    # next_states_val = states_val + bootstrap_value
-                    next_states_val = self.critic_network(next_trajectories, training=True)
-                else:
-                    next_states_val = self.critic_network(_next_states, training=True)
+                _states_val = tf.reshape(_states_val, (len(_states_val)))
 
-                if self.meta_algorithm:
-                    meta_memory_states = self.memory_network(trajectories, training=False)
-                    # self.set_meta_memory_layer_states(meta_memory_states)
-
-                states_val = tf.reshape(states_val, (len(states_val)))
-                next_states_val = tf.reshape(next_states_val, (len(next_states_val)))
-
-                ### Action Advantage Estimates
-                advantages = tf.stop_gradient(
-                    self._advantage_estimates(
-                        _rewards, _disc_rewards, states_val, next_states_val, _dones
-                    )
-                )
-                advantages = self.__standardize_advantages(advantages)
-
-                # deltas = advantages
-                deltas = tf.math.subtract(advantages, states_val)
+                deltas = advantages
+                # deltas = tf.math.subtract(_advantages, _states_val)
 
                 actor_loss = self._actor_network_loss(actions_probs, _actions, deltas)
                 critic_loss = self._critic_network_loss(
-                    _rewards, _disc_rewards, advantages, states_val
+                    _rewards, _disc_rewards, _advantages, _states_val
                 )
 
                 assert not tf.math.is_inf(actor_loss) and not tf.math.is_nan(actor_loss)

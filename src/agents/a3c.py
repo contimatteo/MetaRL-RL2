@@ -61,12 +61,12 @@ class A3C(A2C):
 
         _rewards = tf.cast(rewards, tf.float32)
 
-        advantages, returns = AdvantageEstimateUtils.GAE(
+        advantages, _ = AdvantageEstimateUtils.GAE(
             self._gamma, self._gae_lambda, _rewards, state_v, next_state_v, dones
         )
 
-        return tf.stop_gradient(returns), tf.stop_gradient(advantages)
-        # return tf.stop_gradient(advantages)
+        # return returns, advantages
+        return advantages
 
     #
 
@@ -85,14 +85,15 @@ class A3C(A2C):
             policy_loss = tf.math.multiply(action_log_prob, advantage)
             policy_losses.append(policy_loss)
             ### Entropy
-            entropy_loss = tf.math.negative(tf.math.multiply(action_prob, action_log_prob))
+            entropy_loss = tf.math.multiply(action_prob, action_log_prob)
+            entropy_loss = tf.math.negative(entropy_loss)
             entropy_losses.append(entropy_loss)
 
         def __batch_loss_reduction(batch_losses):
             loss = tf.stack(batch_losses)
             ### TODO: which is the right loss reduce operator?
-            return tf.reduce_sum(loss)
-            # return tf.reduce_mean(loss)
+            # return tf.reduce_sum(loss)
+            return tf.reduce_mean(loss)
 
         policy_loss = __batch_loss_reduction(policy_losses)
         entropy_loss = __batch_loss_reduction(entropy_losses)
