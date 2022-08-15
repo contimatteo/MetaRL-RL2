@@ -252,9 +252,9 @@ class AC(Agent):
                 assert trajectories.shape == _states.shape
                 assert next_trajectories.shape == _next_states.shape
 
-            ### INFO: persist `meta-memory` layer states across batches
-            if b_start_idx > 0:
-                self.set_meta_memory_layer_states(prev_meta_memory_states)
+            # ### INFO: restore previous `meta-memory` (layer) states for the current batch
+            # if b_start_idx > 0:
+            #     self.set_meta_memory_layer_states(prev_meta_memory_states)
 
             #
 
@@ -304,6 +304,10 @@ class AC(Agent):
             self.critic_network_optimizer.apply_gradients(
                 zip(critic_grads, self.critic_network.trainable_variables)
             )
+
+            if self.meta_algorithm:
+                ### INFO: inject previous `meta-memory` layer states (for future batches)
+                self.set_meta_memory_layer_states(prev_meta_memory_states)
 
         #
 

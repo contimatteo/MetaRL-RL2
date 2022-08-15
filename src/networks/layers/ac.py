@@ -1,4 +1,3 @@
-from tkinter import X
 from typing import Callable, Tuple, List
 
 import tensorflow as tf
@@ -56,7 +55,6 @@ def AC_MetaMemoryLayer(name: str) -> Callable[[tf.Tensor], Layer]:
         ### x -> (batch, trajectory_shape)
         x = tf.expand_dims(input_x, axis=1)  ### -> (batch, timestamps, trajectory_shape)
         ### -> (batch, 1, trajectory_shape)
-        # x, memory_state, carry_state = LSTM(512, return_state=True, stateful=True, name=name)(x)
         x, memory_state, carry_state = LSTM(512, return_state=True, stateful=False, name=name)(x)
         return x, [memory_state, carry_state]
 
