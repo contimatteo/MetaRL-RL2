@@ -117,7 +117,10 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
         ep_actor_losses.append(actor_loss)
         ep_critic_losses.append(critic_loss)
         ep_rewards_tot.append(tot_reward)
-        ep_rewards_avg.append(np.mean(ep_rewards_tot[-100:]))
+        if training is True:
+            ep_rewards_avg.append(np.mean(ep_rewards_tot[-100:]))
+        else:
+            ep_rewards_avg.append(np.mean(ep_rewards_tot))
 
         progbar.next()
 
