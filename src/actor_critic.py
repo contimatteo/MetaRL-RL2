@@ -7,32 +7,39 @@ import numpy as np
 import random
 import tensorflow as tf
 
+from gym.spaces import Discrete
 from loguru import logger
 from progress.bar import Bar
-from tensorflow.python.keras.optimizers import rmsprop_v2
+# from tensorflow.python.keras.optimizers import rmsprop_v2
+from tensorflow.python.keras.optimizers import adam_v2
 
 from agents import AC
 from agents import A2C
 from agents import A3C
 from agents import MetaA3C
 from networks import ActorCriticNetworks
-from networks import MetaActorCriticNetworks
+from policies import RandomPolicy
+from policies import EpsilonGreedyPolicy
 from policies import NetworkPolicy
 from policies import NetworkMetaPolicy
+from networks import MetaActorCriticNetworks
 from utils import PlotUtils
 
 ###
 
 RANDOM_SEED = 42
 
-ENV_NAME = "CartPole-v0"
+# ENV_NAME = "CartPole-v0"
 # ENV_NAME = "LunarLander-v2"
+# ENV_NAME = "BipedalWalker-v3"
+ENV_NAME = "Ant-v4"
 
-N_EPISODES_TRAIN = 25
-N_EPISODES_TEST = N_EPISODES_TRAIN
-N_MAX_EPISODE_STEPS = 10000
+N_EPISODES_TRAIN = 50
+N_EPISODES_TEST = 50
 
-TRAIN_BATCH_SIZE = 32
+N_MAX_EPISODE_STEPS = 100
+
+TRAIN_BATCH_SIZE = 8
 
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
@@ -50,32 +57,40 @@ def __plot(agent_name, train_history, test_history):
             "train_critic_loss": train_history["critic_loss"],
             "train_reward_sum": train_history["reward_tot"],
             "train_reward_avg": train_history["reward_avg"],
+            "train_done_step": train_history["dones_step"],
             ### test
             "test_n_episodes": test_history["n_episodes"],
             "test_actor_loss": test_history["actor_loss"],
             "test_critic_loss": test_history["critic_loss"],
-            "test_reward_sum": test_history["reward_tot"],
             "test_reward_avg": test_history["reward_avg"],
+            "test_done_step": test_history["dones_step"],
         }
     )
 
     plt.show()
 
 
-def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
+def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool, render: bool = False):
     ep_steps = []
     ep_actor_losses = []
     ep_critic_losses = []
     ep_rewards_tot = []
     ep_rewards_avg = []
+    ep_dones_step = []
 
     if training is True:
         progbar = Bar('[train] Episodes ...', max=n_episodes)
     else:
         progbar = Bar(' [test] Episodes ...', max=n_episodes)
 
+    # ### INFO: reset the RNN hidden states
+    # if training is True:
+    #     agent.reset_memory_layer_states()
+
     for _ in range(n_episodes):
         state = env.reset()
+        if render:
+            env.render()
 
         if training is True:
             agent.memory.reset()
@@ -89,17 +104,20 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
         prev_action = 0
         prev_reward = 0.
 
-        ### INFO: reset the RNN hidden states
-        agent.reset_memory_layer_states()
-
         while not done and steps < N_MAX_EPISODE_STEPS:
             if agent.meta_algorithm:
                 trajectory = [state, prev_action, prev_reward]
             else:
-                trajectory = np.array([state])
+                trajectory = state
 
-            action = int(agent.act(trajectory)[0])
+            action = agent.act(trajectory)[0]
+            if isinstance(env.action_space, Discrete):
+                action = int(action)
             next_state, reward, done, _ = env.step(action)
+            if render:
+                env.render()
+
+            # reward = reward * (N_MAX_EPISODE_STEPS / 10) if done else reward
 
             steps += 1
             if training is True:
@@ -120,10 +138,8 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
         ep_actor_losses.append(actor_loss)
         ep_critic_losses.append(critic_loss)
         ep_rewards_tot.append(tot_reward)
-        if training is True:
-            ep_rewards_avg.append(np.mean(ep_rewards_tot[-100:]))
-        else:
-            ep_rewards_avg.append(np.mean(ep_rewards_tot))
+        ep_rewards_avg.append(np.mean(ep_rewards_tot[-100:]))
+        ep_dones_step.append(steps)
 
         progbar.next()
 
@@ -139,6 +155,7 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool):
         "critic_loss": ep_critic_losses,
         "reward_tot": ep_rewards_tot,
         "reward_avg": ep_rewards_avg,
+        "dones_step": ep_dones_step,
     }
 
 
@@ -150,6 +167,10 @@ def main():
 
     observation_space = env.observation_space
     action_space = env.action_space
+
+    action_bounds = None
+    if not isinstance(env.action_space, Discrete):
+        action_bounds = [action_space.low, action_space.high]
 
     ###
 
@@ -183,11 +204,14 @@ def main():
     )
 
     a3c_policy = NetworkPolicy(
-        state_space=observation_space, action_space=action_space, network=a3c_actor_network
+        state_space=observation_space,
+        action_space=action_space,
+        network=a3c_actor_network,
+        action_buonds=action_bounds
     )
 
-    a3c_actor_network_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
-    a3c_critic_network_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
+    a3c_actor_network_opt = adam_v2.Adam(learning_rate=1e-4)
+    a3c_critic_network_opt = adam_v2.Adam(learning_rate=1e-4)
 
     a3c = A3C(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
@@ -196,12 +220,13 @@ def main():
         critic_network=a3c_critic_network,
         actor_network_opt=a3c_actor_network_opt,
         critic_network_opt=a3c_critic_network_opt,
-        standardize_advantage_estimate=True
+        standardize_advantage_estimate=True,
     )
 
     tf.keras.backend.clear_session()
     a3c_train_history = run(N_EPISODES_TRAIN, env, a3c, training=True)
     a3c_test_history = run(N_EPISODES_TEST, env, a3c, training=False)
+    run(5, env, a3c, training=False, render=True)
     __plot(a3c.name, a3c_train_history, a3c_test_history)
     print("\n")
 

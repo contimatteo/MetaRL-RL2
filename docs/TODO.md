@@ -24,3 +24,5 @@
  [ ] Understand the correct order of `training` procedure respect to the `shuffle` operation
 
  [ ] use `PolynomialDecay` class for learning rate
+
+ [ ] AC: use `QNetwork` as CriticNetwork

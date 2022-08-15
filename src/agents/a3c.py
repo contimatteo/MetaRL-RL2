@@ -75,7 +75,8 @@ class A3C(A2C):
 
         for probs, action_taken, advantage in zip(actions_probs, actions, advantages.numpy()):
             advantage = tf.constant(advantage)  ### exclude from gradient computation
-            distribution = tfp.distributions.Categorical(probs=probs + .000001, dtype=tf.float32)
+            # distribution = tfp.distributions.Categorical(probs=probs + .000001, dtype=tf.float32)
+            distribution = tfp.distributions.Categorical(logits=probs, dtype=tf.float32)
             #
             action_prob = distribution.prob(action_taken)
             action_log_prob = distribution.log_prob(action_taken)
