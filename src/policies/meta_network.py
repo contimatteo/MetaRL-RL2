@@ -36,9 +36,10 @@ class NetworkMetaPolicy(MetaPolicy):
         act_probs = self.policy_network(trajectory, training=False).numpy()
 
         if self.action_sampling_mode == "distribution":
-            distribution = tfp.distributions.Categorical(
-                probs=act_probs + .000001, dtype=tf.float32
-            )
+            # distribution = tfp.distributions.Categorical(
+            #     probs=act_probs + .000001, dtype=tf.float32
+            # )
+            distribution = tfp.distributions.Categorical(logits=act_probs, dtype=tf.float32)
 
             actions = distribution.sample().numpy()
             assert actions.shape[0] == trajectory[0].shape[0]

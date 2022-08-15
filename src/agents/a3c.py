@@ -61,11 +61,12 @@ class A3C(A2C):
 
         _rewards = tf.cast(rewards, tf.float32)
 
-        advantages = AdvantageEstimateUtils.GAE(
+        advantages, _ = AdvantageEstimateUtils.GAE(
             self._gamma, self._gae_lambda, _rewards, state_v, next_state_v, dones
         )
 
-        return tf.stop_gradient(advantages)
+        # return returns, advantages
+        return advantages
 
     #
 
@@ -75,7 +76,8 @@ class A3C(A2C):
 
         for probs, action_taken, advantage in zip(actions_probs, actions, advantages.numpy()):
             advantage = tf.constant(advantage)  ### exclude from gradient computation
-            distribution = tfp.distributions.Categorical(probs=probs + .000001, dtype=tf.float32)
+            # distribution = tfp.distributions.Categorical(probs=probs + .000001, dtype=tf.float32)
+            distribution = tfp.distributions.Categorical(logits=probs, dtype=tf.float32)
             #
             action_prob = distribution.prob(action_taken)
             action_log_prob = distribution.log_prob(action_taken)
@@ -83,7 +85,8 @@ class A3C(A2C):
             policy_loss = tf.math.multiply(action_log_prob, advantage)
             policy_losses.append(policy_loss)
             ### Entropy
-            entropy_loss = tf.math.negative(tf.math.multiply(action_prob, action_log_prob))
+            entropy_loss = tf.math.multiply(action_prob, action_log_prob)
+            entropy_loss = tf.math.negative(entropy_loss)
             entropy_losses.append(entropy_loss)
 
         def __batch_loss_reduction(batch_losses):

@@ -16,11 +16,10 @@ def ActorCriticNetworks(
     action_space: gym.Space,
     shared_backbone: bool,
 ) -> Tuple[Model, Model]:
-    ### TODO: support also 'continuous' action space
-    assert isinstance(action_space, gym.spaces.discrete.Discrete)
-    discrete = True
+    discrete = isinstance(action_space, gym.spaces.discrete.Discrete)
 
     input_shape = obs_space.shape if len(obs_space.shape) > 0 else (1, )
+    n_actions = action_space.n if discrete else action_space.shape[0]
 
     ### input
     l_input = Input(shape=input_shape)
@@ -33,7 +32,7 @@ def ActorCriticNetworks(
         l_backbone_a = AC_BackboneLayer()
         l_backbone_c = AC_BackboneLayer()
     ### head
-    l_actor_head = A_HeadLayer(action_space.n, discrete=discrete)
+    l_actor_head = A_HeadLayer(n_actions, discrete=discrete)
     l_critic_head = C_HeadLayer()
 
     #
