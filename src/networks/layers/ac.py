@@ -66,7 +66,7 @@ def AC_MetaMemoryLayer(name: str) -> Callable[[tf.Tensor], Layer]:
     def memory(input_x: tf.Tensor) -> Tuple[tf.Tensor, List[tf.Tensor]]:
         """
         I have `input_x` input tensor which has `(batch, trajectory_shape)` shape.
-        My goal is to preserve the LSTM hidden states across the entire batch (without) using
+        My goal is to preserve the LSTM hidden states across the entire batch (despite) using
         the `stateful=True` input parameter. In order to do this, I'm going to reshape the tensor
         in order to use the `batch_axis` as the `timestamps_axis`. In this way the LSTM layer will
         preserve the hidden states. Once I've done this, I have also to set the
@@ -84,7 +84,13 @@ def AC_MetaMemoryLayer(name: str) -> Callable[[tf.Tensor], Layer]:
         ### LSTM (input) -> (batch, timestamps, trajectory_shape)
         ### x -> (1, None, trajectory_shape)
         x, memory_state, carry_state = LSTM(
-            512, return_state=True, return_sequences=True, name=name
+            512,
+            return_state=True,
+            return_sequences=True,
+            name=name,
+            #
+            stateful=True,
+            # batch_input_shape=(None, ) + input_x.shape,
         )(x)
         ### LSTM (out) -> (batch, timestamps, trajectory_shape)
         ### x -> (1, None, trajectory_shape)

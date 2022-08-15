@@ -17,6 +17,8 @@ from agents import MetaA3C
 from environments import BanditTwoArmedDependentEasy
 from environments import BanditTwoArmedDependentMedium
 from environments import BanditTwoArmedDependentHard
+from environments import BanditTenArmedRandomRandom
+from environments import BanditTenArmedRandomFixed
 from networks import ActorCriticNetworks
 from networks import MetaActorCriticNetworks
 from policies import NetworkPolicy
@@ -28,13 +30,13 @@ from utils import PlotUtils
 
 RANDOM_SEED = 42
 
-N_TRIALS_TRAIN = 100
-N_TRIALS_TEST = 50
+N_TRIALS_TRAIN = 5
+N_TRIALS_TEST = 5
 N_EPISODES_TRAIN = 1
 N_EPISODES_TEST = N_EPISODES_TRAIN
 N_MAX_EPISODE_STEPS = 100
 
-TRAIN_BATCH_SIZE = 25
+TRAIN_BATCH_SIZE = 10
 
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
@@ -86,7 +88,7 @@ def run(n_trials: int, n_episodes: int, envs: List[gym.Env], agent: MetaA3C, tra
             ### INFO: after each trial, we have to reset the RNN hidden states
             agent.reset_memory_layer_states()
 
-        for episode in range(n_episodes):
+        for _ in range(n_episodes):
             state = env.reset()
 
             if training is True:
@@ -94,7 +96,7 @@ def run(n_trials: int, n_episodes: int, envs: List[gym.Env], agent: MetaA3C, tra
 
             ### INFO: all episodes (except for the first one) must
             ### have the `meta-memory` layer states initialized.
-            assert episode < 1 or agent.get_meta_memory_layer_states()[0] is not None
+            # assert episode < 1 or agent.get_meta_memory_layer_states()[0] is not None
 
             #
 
@@ -103,8 +105,9 @@ def run(n_trials: int, n_episodes: int, envs: List[gym.Env], agent: MetaA3C, tra
             tot_reward = 0
             next_state = None
 
-            prev_action = env.action_space.sample()
-            _, prev_reward, _, _ = env.step(prev_action)
+            prev_action = 0  # env.action_space.sample()
+            # _, prev_reward, _, _ = env.step(prev_action)
+            prev_reward = 0
 
             while not done and steps < N_MAX_EPISODE_STEPS:
                 if agent.meta_algorithm:
@@ -167,8 +170,9 @@ def main():
         # BanditTwoArmedDependentEasy(),
         # BanditTwoArmedDependentMedium(),
         # BanditTwoArmedDependentHard(),
-        BanditTwoArmedDependentHard(),
-        BanditTwoArmedDependentHard(),
+        # BanditTenArmedRandomRandom(),
+        BanditTwoArmedDependentEasy(),
+        BanditTwoArmedDependentMedium(),
         BanditTwoArmedDependentHard(),
     ]
 
@@ -232,8 +236,8 @@ def main():
         state_space=observation_space, action_space=action_space, network=a3cmeta_actor_nn
     )
 
-    a3cmeta_actor_nn_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
-    a3cmeta_critic_nn_opt = rmsprop_v2.RMSprop(learning_rate=1e-4)
+    a3cmeta_actor_nn_opt = rmsprop_v2.RMSprop(learning_rate=5e-4)
+    a3cmeta_critic_nn_opt = rmsprop_v2.RMSprop(learning_rate=5e-4)
 
     a3cmeta = MetaA3C(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
