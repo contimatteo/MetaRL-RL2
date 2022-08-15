@@ -29,12 +29,12 @@ from utils import PlotUtils
 
 RANDOM_SEED = 42
 
-N_TRIALS = 5
-N_EPISODES_TRAIN = 2
+N_TRIALS = 2
+N_EPISODES_TRAIN = 1
 N_EPISODES_TEST = N_EPISODES_TRAIN
-N_MAX_EPISODE_STEPS = 50
+N_MAX_EPISODE_STEPS = 25
 
-TRAIN_BATCH_SIZE = 16
+TRAIN_BATCH_SIZE = 8
 
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
@@ -161,8 +161,7 @@ def main():
         # BanditTwoArmedDependentMedium(),
         # BanditTwoArmedDependentHard(),
         BanditTwoArmedDependentEasy(),
-        BanditTwoArmedDependentMedium(),
-        BanditTwoArmedDependentHard(),
+        BanditTwoArmedDependentEasy(),
     ]
 
     observation_space = envs[0].observation_space
