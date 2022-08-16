@@ -40,7 +40,7 @@ N_EPISODES_TEST = 25
 
 N_MAX_EPISODE_STEPS = 50
 
-TRAIN_BATCH_SIZE = 64
+TRAIN_BATCH_SIZE = 16
 
 np.random.seed(RANDOM_SEED)
 tf.random.set_seed(RANDOM_SEED)
@@ -88,6 +88,8 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool, render: bool 
     # if training is True:
     #     agent.reset_memory_layer_states()
 
+    agent.env_sync(env)
+
     for _ in range(n_episodes):
         state = env.reset()
         if render:
@@ -102,7 +104,7 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool, render: bool 
         done = False
         tot_reward = 0
         next_state = None
-        prev_action = 0
+        prev_action = np.zeros(env.action_space.shape)
         prev_reward = 0.
 
         while not done and steps < N_MAX_EPISODE_STEPS:
@@ -117,8 +119,6 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool, render: bool 
             next_state, reward, done, _ = env.step(action)
             if render:
                 env.render()
-
-            # reward = reward * (N_MAX_EPISODE_STEPS / 10) if done else reward
 
             steps += 1
             if training is True:
