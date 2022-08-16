@@ -1,0 +1,18 @@
+{
+  "trial_id": "A3C_Network_Ant",
+
+  "mode": "render",
+  "n_trials": 1,
+  "n_episodes": 5,
+  "n_max_steps": 100,
+
+  "policy": "Network",
+  "meta_policy": false,
+
+  "envs": [
+    {
+      "name": "gym/Ant",
+      "params": {}
+    }
+  ]
+}

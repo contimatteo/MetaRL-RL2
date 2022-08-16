@@ -165,8 +165,8 @@ class AC(Agent):
 
     #
 
-    def act(self, state: np.ndarray) -> np.ndarray:
-        return self.policy.act(state)
+    # def act(self, state: np.ndarray) -> np.ndarray:
+    #     return self.policy.act(state)
 
     def train(self, batch_size: Optional[int] = None, shuffle: bool = False) -> Any:
         ep_data = self.memory.all()

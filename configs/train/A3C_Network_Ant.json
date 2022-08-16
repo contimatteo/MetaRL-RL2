@@ -1,0 +1,26 @@
+{
+  "trial_id": "A3C_Network_Ant",
+
+  "mode": "training",
+  "n_trials": 1,
+  "n_episodes": 50,
+  "n_max_steps": 500,
+
+  "policy": "Network",
+  "meta_policy": false,
+
+  "envs": [
+    {
+      "name": "gym/Ant",
+      "params": {}
+    }
+  ],
+
+  "batch_size": 8,
+  "actor_opt_lr": 5e-5,
+  "critic_opt_lr": 5e-5,
+
+  "agent": "A3C",
+  "n_explore_episodes": 25,
+  "nn_shared_backbone": false
+}
