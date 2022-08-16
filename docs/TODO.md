@@ -26,3 +26,5 @@
  [ ] use `PolynomialDecay` class for learning rate
 
  [ ] AC: use `QNetwork` as CriticNetwork
+
+ [ ] Policy: different policies usage during training
