@@ -1,13 +1,13 @@
 {
-
-  "trial_id": "A3C_Network_CartPole",  
+  "trial_id": "A3C_Network_CartPole",
 
   "mode": "training",
   "n_trials": 1,
   "n_episodes": 100,
   "n_max_steps": 500,
-  
-  "n_explore_episodes": 10,
+
+  "policy": "Network",
+  "meta_policy": false,
 
   "envs": [
     {
@@ -19,10 +19,8 @@
   "batch_size": 64,
   "actor_opt_lr": 1e-4,
   "critic_opt_lr": 1e-4,
-  
-  "meta_policy": false,
-  "nn_shared_backbone": false,
 
   "agent": "A3C",
-  "policy": "Network"
+  "n_explore_episodes": 10,
+  "nn_shared_backbone": false
 }

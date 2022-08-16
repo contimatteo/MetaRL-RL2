@@ -199,7 +199,6 @@ class StandardController(Controller):
             for _ in range(n_episodes):
                 state = env.reset()
                 env.render()
-                time.sleep(0.1)
 
                 steps, done, next_state = 0, False, None
                 prev_reward = 0.
@@ -210,7 +209,6 @@ class StandardController(Controller):
                     action = self.__action(trajectory)
                     next_state, _, done, _ = env.step(action)
                     env.render()
-                    time.sleep(0.1)
 
                     steps += 1
                     state = next_state
@@ -264,11 +262,11 @@ class StandardController(Controller):
         if self.mode == "training":
             history = self.__train()
             self._save_trained_models()
-            # self.__plot(history, history)
+            self.__plot(history, history)
 
         elif self.mode == "inference":
             history = self.__inference()
-            # self.__plot(history, history)
+            self.__plot(history, history)
 
         elif self.mode == "render":
             self.__render()
