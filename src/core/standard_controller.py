@@ -194,6 +194,7 @@ class StandardController(Controller):
         n_episodes = self._config.n_episodes
 
         for trial in range(n_trials):
+            env = None
             env = self.envs[trial % len(self.envs)]
 
             for _ in range(n_episodes):
@@ -205,6 +206,7 @@ class StandardController(Controller):
                 prev_action = np.zeros(env.action_space.shape)
 
                 while not done and steps < self._config.n_max_steps:
+                    env.render()
                     trajectory = self.__trajectory(state, prev_action, prev_reward)
                     action = self.__action(trajectory)
                     next_state, _, done, _ = env.step(action)
