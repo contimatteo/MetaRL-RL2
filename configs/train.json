@@ -1,0 +1,26 @@
+{
+  "trial_id": "A3C_Network_CartPole",
+
+  "mode": "training",
+  "n_trials": 1,
+  "n_episodes": 100,
+  "n_max_steps": 500,
+
+  "policy": "Network",
+  "meta_policy": false,
+
+  "envs": [
+    {
+      "name": "gym/CartPole",
+      "params": {}
+    }
+  ],
+
+  "batch_size": 64,
+  "actor_opt_lr": 1e-4,
+  "critic_opt_lr": 1e-4,
+
+  "agent": "A3C",
+  "n_explore_episodes": 10,
+  "nn_shared_backbone": false
+}

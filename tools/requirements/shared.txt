@@ -16,7 +16,7 @@ yapf
 loguru
 progress
 python-dotenv
-pyglet
+pyglet==1.5.11
 matplotlib
 swig
 wandb
