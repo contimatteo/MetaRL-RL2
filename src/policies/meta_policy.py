@@ -17,21 +17,18 @@ class MetaPolicy(Policy, abc.ABC):
         assert isinstance(trajectory, list)
 
         for i, _input in enumerate(trajectory):
-            assert isinstance(_input,
-                              np.ndarray) or (isinstance(_input, float) or isinstance(_input, int))
+            _input = np.array(_input, dtype=np.float32)
 
-            if isinstance(_input, np.ndarray):
-                if len(_input.shape) == 1:
-                    ### reshape in order to match network `batch` dimension
-                    trajectory[i] = np.expand_dims(_input, axis=0)  ### (x,) -> (1, x)
-            else:
+            if len(_input.shape) < 2:
                 ### reshape in order to match network `batch` dimension
-                trajectory[i] = np.expand_dims(_input, axis=0)  ### (x,) -> (1, x)
+                _input = np.expand_dims(_input, axis=0)  ### (x,) -> (1, x)
 
-        for i in range(len(trajectory) - 1):
-            ### batch dimension is required
-            assert len(trajectory[i].shape) > 0
-            ### multi-input must have the same batch_dimension
-            assert trajectory[i].shape[0] == trajectory[i + 1].shape[0]
+            trajectory[i] = _input
+            assert len(trajectory[i].shape) > 0  ### batch dimension is required
 
-        return self._act(trajectory, mask=mask)
+        actions = self._act(trajectory, mask=mask)
+
+        if not self._is_discrete:
+            actions = self._clip_continuous_actions(actions)
+
+        return actions

@@ -20,15 +20,14 @@ def MetaActorCriticNetworks(
     action_space: gym.Space,
     shared_backbone: bool,
 ) -> Tuple[Model, Model]:
-    ### TODO: support also 'continuous' action space
-    assert isinstance(action_space, gym.spaces.discrete.Discrete)
-    discrete = True
+    discrete = isinstance(action_space, gym.spaces.discrete.Discrete)
 
-    obs_shape = obs_space.shape
+    obs_shape = obs_space.shape if len(obs_space.shape) > 0 else (1, )
+    n_actions = action_space.n if discrete else action_space.shape[0]
 
     ### input
     input_obs = Input(shape=obs_shape, name="Input_Observations")
-    input_prev_action = Input(shape=(1, ), name="Input_PreviousAction")
+    input_prev_action = Input(shape=(n_actions, ), name="Input_PreviousAction")
     input_prev_reward = Input(shape=(1, ), name="Input_PreviousReward")
     ### encoder
     l_encoder = AC_EncoderLayer()
@@ -41,7 +40,7 @@ def MetaActorCriticNetworks(
         l_backbone_a = AC_BackboneLayer()
         l_backbone_c = AC_BackboneLayer()
     ### head
-    l_actor_head = A_HeadLayer(action_space.n, discrete=discrete)
+    l_actor_head = A_HeadLayer(n_actions, discrete=discrete)
     l_critic_head = C_HeadLayer()
 
     #
