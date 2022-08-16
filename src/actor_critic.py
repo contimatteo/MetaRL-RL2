@@ -35,10 +35,10 @@ ENV_NAME = "CartPole-v0"
 # ENV_NAME = "BipedalWalker-v3"
 # ENV_NAME = "Ant-v4"
 
-N_EPISODES_TRAIN = 100
-N_EPISODES_TEST = 50
+N_EPISODES_TRAIN = 25
+N_EPISODES_TEST = 25
 
-N_MAX_EPISODE_STEPS = 250
+N_MAX_EPISODE_STEPS = 50
 
 TRAIN_BATCH_SIZE = 64
 
@@ -207,7 +207,11 @@ def main():
         observation_space, action_space, shared_backbone=False
     )
 
-    a3c_policy = NetworkPolicy(
+    a3c_train_policy = RandomPolicy(
+        state_space=observation_space, action_space=action_space, action_buonds=action_bounds
+    )
+
+    a3c_test_policy = NetworkPolicy(
         state_space=observation_space,
         action_space=action_space,
         network=a3c_actor_network,
@@ -221,7 +225,7 @@ def main():
 
     a3c = A3C(
         n_max_episode_steps=N_MAX_EPISODE_STEPS,
-        policy=a3c_policy,
+        policy=a3c_train_policy,
         actor_network=a3c_actor_network,
         critic_network=a3c_critic_network,
         actor_network_opt=a3c_actor_network_opt,
@@ -230,8 +234,9 @@ def main():
 
     tf.keras.backend.clear_session()
     a3c_train_history = run(N_EPISODES_TRAIN, env, a3c, training=True)
+    a3c.policy = a3c_test_policy
     a3c_test_history = run(N_EPISODES_TEST, env, a3c, training=False)
-    run(2, env, a3c, training=False, render=True)
+    run(5, env, a3c, training=False, render=True)
     __plot(a3c.name, a3c_train_history, a3c_test_history)
     print("\n")
 
