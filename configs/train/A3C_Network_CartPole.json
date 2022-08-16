@@ -16,9 +16,9 @@
     }
   ],
 
-  "batch_size": 32,
-  "actor_opt_lr": 1e-4,
-  "critic_opt_lr": 1e-4,
+  "batch_size": 64,
+  "actor_opt_lr": 5e-4,
+  "critic_opt_lr": 5e-4,
 
   "agent": "A3C",
   "n_explore_episodes": 100,
