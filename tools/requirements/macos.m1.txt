@@ -10,4 +10,4 @@
 -r shared.txt
 
 tensorflow-macos
-tensorflow-metal
+# tensorflow-metal

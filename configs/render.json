@@ -1,0 +1,18 @@
+{
+  "trial_id": "A3C_Network_CartPole",
+
+  "mode": "render",
+  "n_trials": 1,
+  "n_episodes": 3,
+  "n_max_steps": 500,
+
+  "policy": "Network",
+  "meta_policy": false,
+
+  "envs": [
+    {
+      "name": "gym/CartPole",
+      "params": {}
+    }
+  ]
+}
