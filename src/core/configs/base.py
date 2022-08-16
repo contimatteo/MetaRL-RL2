@@ -15,11 +15,10 @@ class ConfigScheme():
         self.mode: str = None
         self.n_trials: int = None
         self.n_episodes: int = None
-        self.n_explore_episodes: int = None
         self.n_max_steps: int = None
         self.envs: List[dict] = None
-        self.agent: str = None
         self.policy: str = None
+        self.trial_id: str = None
 
     #
 
@@ -41,9 +40,6 @@ class ConfigScheme():
         assert "n_max_steps" in self._raw
         n_max_steps = self._raw["n_max_steps"]
         assert isinstance(n_max_steps, int) and n_max_steps > 0
-        assert "n_explore_episodes" in self._raw
-        n_explore_episodes = self._raw["n_explore_episodes"]
-        assert isinstance(n_explore_episodes, int) and n_explore_episodes > 0
 
         assert "envs" in self._raw
         envs = self._raw["envs"]
@@ -53,25 +49,27 @@ class ConfigScheme():
             assert isinstance(env["name"], str)
             assert isinstance(env["params"], dict)
 
+        assert "trial_id" in self._raw
+        trial_id = self._raw["trial_id"]
+        assert isinstance(trial_id, str)
+
     def _parse_raw_config(self) -> None:
         self.mode = self._raw["mode"]
         self.n_trials = self._raw["n_trials"]
         self.n_episodes = self._raw["n_episodes"]
-        self.n_explore_episodes = self._raw["n_explore_episodes"]
         self.n_max_steps = self._raw["n_max_steps"]
         self.envs = self._raw["envs"]
-        self.agent = self._raw["agent"]
         self.policy = self._raw["policy"]
+        self.trial_id = self._raw["trial_id"]
 
     def _validate_parsed_config(self) -> None:
         assert self._raw is not None
         assert self.mode is not None
         assert self.n_trials is not None
         assert self.n_episodes is not None
-        assert self.n_explore_episodes is not None
         assert self.n_max_steps is not None
-        assert self.agent is not None
         assert self.policy is not None
+        assert self.trial_id is not None
         assert isinstance(self.envs, list) and len(self.envs) > 0
 
     #

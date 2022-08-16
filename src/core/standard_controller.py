@@ -1,10 +1,8 @@
-# pylint: disable=wrong-import-order, unused-import, consider-using-f-string
 from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from gym.spaces import Discrete
 from progress.bar import Bar
 
 from utils import PlotUtils
@@ -17,7 +15,7 @@ from .controller import Controller
 class StandardController(Controller):
 
     def __trajectory(self, state, prev_action, prev_reward) -> Any:
-        if self.agent.meta_algorithm:
+        if self.meta_policy:
             trajectory = [state, prev_action, prev_reward]
         else:
             trajectory = state
@@ -25,7 +23,8 @@ class StandardController(Controller):
         return trajectory
 
     def __action(self, trajectory) -> Any:
-        action = self.agent.act(trajectory)[0]
+        # action = self.agent.act(trajectory)[0]
+        action = self.policy.act(trajectory)[0]
 
         if self.env_actions_are_discrete:
             action = int(action)
@@ -152,12 +151,8 @@ class StandardController(Controller):
 
         for trial in range(n_trials):
             env = self.envs[trial % len(self.envs)]
-            self.agent.env_sync(env)
 
             progbar = Bar(f" [test] TRIAL {trial+1:02} -> Episodes ...", max=n_episodes)
-
-            ### INFO: after each trial, we have to reset the RNN hidden states
-            self.agent.reset_memory_layer_states()
 
             for _ in range(n_episodes):
                 state = env.reset()
@@ -193,8 +188,6 @@ class StandardController(Controller):
 
         #
 
-        self.agent.memory.reset()
-
         return {
             "n_episodes": n_trials * n_episodes,
             "actor_loss": ep_actor_losses,
@@ -204,14 +197,14 @@ class StandardController(Controller):
             "dones_step": ep_dones_step,
         }
 
-    def __render(self) -> dict:
+    def __render(self) -> None:
         return {}
 
     #
 
     def __plot(self, train_history, test_history):
         PlotUtils.train_test_history(
-            f"{self.agent.name} ({self._config.policy})",
+            self._config.trial_id,
             {
                 ### train
                 "train_n_episodes": train_history["n_episodes"],
@@ -237,23 +230,35 @@ class StandardController(Controller):
     #
 
     def run(self) -> None:
-        super().run()
+        self._load_envs()
+
+        if self.mode == "training":
+            self._load_networks()
+            self._load_policy()
+            self._load_agent()
+        else:
+            self._load_trained_models()
+            self._load_policy()
+
+        self._validate_controller()
+
+        #
 
         if self.mode == "training":
             history = self.__train()
-
-            test_history = self.__inference()
-            self.__plot(history, test_history)
-
-            self.__save_history(history)
+            self._save_trained_models()
+            # self.__plot(history, history)
 
         elif self.mode == "inference":
             history = self.__inference()
+            self.__plot(history, history)
 
         elif self.mode == "render":
             history = self.__render()
 
         else:
             raise Exception("mode not supported.")
+
+        #
 
         self.__save_history(history)

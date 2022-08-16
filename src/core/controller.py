@@ -7,6 +7,7 @@ import gym
 from gym.spaces import Discrete
 from gym.spaces import Box
 from tensorflow.python.keras import Model
+from tensorflow.python.keras.models import load_model
 
 from agents import AC
 from agents import A2C
@@ -42,7 +43,7 @@ class Controller():
         self.memory_nn: Optional[Model] = None
 
         self.actor_nn_opt = None
-        self.crtici_nn_opt = None
+        self.critic_nn_opt = None
 
         self.envs: List[gym.Env] = []
         self.policy: Union[Policy, MetaPolicy] = None
@@ -67,19 +68,29 @@ class Controller():
         return isinstance(self.env_action_space, Discrete)
 
     @property
-    def meta_agent(self) -> bool:
+    def meta_policy(self) -> bool:
         if self.agent is not None:
-            assert self.agent.meta_algorithm == self._config.meta_agent
-            return self._config.meta_agent
+            assert self.agent.meta_algorithm == self._config.meta_policy
+            return self._config.meta_policy
 
-        return self._config.meta_agent
+        return self._config.meta_policy
 
+    @property
     def env_actions_bounds(self) -> Optional[list]:
         if self.env_actions_are_discrete:
             return None
 
         action_space = self.env_action_space
         return [action_space.low, action_space.high]
+
+    @property
+    def actor_nn_weights_url(self) -> Path:
+        weights_url = LocalStorageManager.dirs.tmp_saved_models
+        weights_url = weights_url.joinpath(self._config.trial_id)
+        weights_url = weights_url.joinpath("actor")
+        if not weights_url.is_dir():
+            weights_url.mkdir(exist_ok=True, parents=True)
+        return weights_url
 
     #
 
@@ -111,34 +122,22 @@ class Controller():
             self._config, InferenceConfig
         ) or isinstance(self._config, RenderConfig)
 
-    def __validate_controller(self) -> None:
-        envs = self.envs
-
-        for i in range(len(envs) - 1):
-            assert isinstance(envs[i], gym.Env)
-            assert envs[i].observation_space == envs[i + 1].observation_space
-            assert envs[i].action_space == envs[i + 1].action_space
-
-        assert self.actor_nn is not None
-        assert self.critic_nn is not None
-        assert self.actor_nn_opt is not None
-        assert self.crtici_nn_opt is not None
-        assert self.policy is not None
-        assert self.agent is not None
-
     #
 
-    def __load_envs(self) -> None:
+    def _load_envs(self) -> None:
         self.envs = []
 
         for env in self._config.envs:
             env = ControllerUtils.gym_env(env["name"], env["params"])
             self.envs.append(env)
 
-    def __load_networks(self) -> None:
+    def _load_networks(self) -> None:
+        if self.mode == "training":
+            return
+
         obs_space = self.env_obs_space
         action_space = self.env_action_space
-        meta_network = self.meta_agent
+        meta_network = self.meta_policy
         shared_backbone = self._config.nn_shared_backbone
 
         self.actor_nn, self.critic_nn, self.memory_nn = ControllerUtils.networks(
@@ -149,9 +148,9 @@ class Controller():
         )
 
         self.actor_nn_opt = ControllerUtils.network_optimizer("RMSProp")
-        self.crtici_nn_opt = ControllerUtils.network_optimizer("RMSProp")
+        self.critic_nn_opt = ControllerUtils.network_optimizer("RMSProp")
 
-    def __load_policy(self) -> None:
+    def _load_policy(self) -> None:
         policy_name = self._config.policy
         obs_space = self.env_obs_space
         action_space = self.env_action_space
@@ -160,7 +159,7 @@ class Controller():
         assert self.actor_nn is not None
 
         if policy_name == "Random":
-            if self.meta_agent:
+            if self.meta_policy:
                 self.policy = RandomMetaPolicy(
                     state_space=obs_space, action_space=action_space, action_buonds=action_bounds
                 )
@@ -171,7 +170,7 @@ class Controller():
             return
 
         if policy_name == "Network":
-            if self.meta_agent:
+            if self.meta_policy:
                 self.policy = NetworkMetaPolicy(
                     state_space=obs_space,
                     action_space=action_space,
@@ -189,7 +188,7 @@ class Controller():
 
         if policy_name == "EpsilonGreedy":
             nn_policy = None
-            if self.meta_agent:
+            if self.meta_policy:
                 nn_policy = NetworkMetaPolicy(
                     state_space=obs_space,
                     action_space=action_space,
@@ -208,22 +207,22 @@ class Controller():
 
         raise Exception("policy not supported")
 
-    def __load_agent(self) -> None:
+    def _load_agent(self) -> None:
         agent_name = self._config.agent
         n_max_steps = self._config.n_max_steps
 
-        if self.meta_agent:
+        if self.meta_policy:
             assert self.memory_nn is not None
 
         if agent_name == "A2C":
-            if self.meta_agent:
+            if self.meta_policy:
                 self.agent = MetaA2C(
                     n_max_episode_steps=n_max_steps,
                     policy=self.policy,
                     actor_network=self.actor_nn,
                     critic_network=self.critic_nn,
                     actor_network_opt=self.actor_nn_opt,
-                    critic_network_opt=self.crtici_nn_opt,
+                    critic_network_opt=self.critic_nn_opt,
                     memory_network=self.memory_nn,
                 )
             else:
@@ -233,19 +232,19 @@ class Controller():
                     actor_network=self.actor_nn,
                     critic_network=self.critic_nn,
                     actor_network_opt=self.actor_nn_opt,
-                    critic_network_opt=self.crtici_nn_opt,
+                    critic_network_opt=self.critic_nn_opt,
                 )
             return
 
         if agent_name == "A3C":
-            if self.meta_agent:
+            if self.meta_policy:
                 self.agent = MetaA3C(
                     n_max_episode_steps=n_max_steps,
                     policy=self.policy,
                     actor_network=self.actor_nn,
                     critic_network=self.critic_nn,
                     actor_network_opt=self.actor_nn_opt,
-                    critic_network_opt=self.crtici_nn_opt,
+                    critic_network_opt=self.critic_nn_opt,
                     memory_network=self.memory_nn,
                 )
             else:
@@ -255,11 +254,44 @@ class Controller():
                     actor_network=self.actor_nn,
                     critic_network=self.critic_nn,
                     actor_network_opt=self.actor_nn_opt,
-                    critic_network_opt=self.crtici_nn_opt,
+                    critic_network_opt=self.critic_nn_opt,
                 )
             return
 
         raise Exception("agent not supported.")
+
+    #
+
+    def _load_trained_models(self) -> None:
+        weights_url = self.actor_nn_weights_url
+
+        assert weights_url.exists()
+        assert weights_url.is_dir()
+        assert not LocalStorageManager.is_empty(weights_url)
+
+        self.actor_nn = load_model(weights_url)
+
+    def _save_trained_models(self) -> None:
+        weights_url = self.actor_nn_weights_url
+
+        self.actor_nn.save(weights_url, overwrite=True)
+
+    def _validate_controller(self) -> None:
+        envs = self.envs
+
+        for i in range(len(envs) - 1):
+            assert isinstance(envs[i], gym.Env)
+            assert envs[i].observation_space == envs[i + 1].observation_space
+            assert envs[i].action_space == envs[i + 1].action_space
+
+        assert self.policy is not None
+
+        if self.mode == "training":
+            assert self.actor_nn is not None
+            assert self.critic_nn is not None
+            assert self.actor_nn_opt is not None
+            assert self.critic_nn_opt is not None
+            assert self.agent is not None
 
     #
 
@@ -280,16 +312,11 @@ class Controller():
         self.__parse_raw_config()
         self.__validate_parsed_config()
 
-        self.__load_envs()
-        self.__load_networks()
-        self.__load_policy()
-        self.__load_agent()
+        # self.__load_envs()
+        # self.__load_networks()
+        # self.__load_policy()
+        # self.__load_agent()
+        # self.__validate_controller()
+        # self._initialized = True
 
-        self.__validate_controller()
-
-        self._initialized = True
-
-    #
-
-    def run(self) -> None:
-        assert self._initialized is True
+        return

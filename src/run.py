@@ -1,5 +1,11 @@
 import utils.env_setup
 
+# import numpy as np
+# import tensorflow as tf
+# RANDOM_SEED = 42
+# np.random.seed(RANDOM_SEED)
+# tf.random.set_seed(RANDOM_SEED)
+
 from core import StandardController
 from utils import parse_args
 
