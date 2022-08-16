@@ -47,7 +47,7 @@ class Policy(abc.ABC):
     def act(self, obs: np.ndarray, mask=None) -> np.ndarray:
         assert isinstance(obs, np.ndarray)
 
-        if len(obs.shape) == 1:
+        if len(obs.shape) < 2:
             ### reshape in order to match network `batch` dimension
             obs = np.expand_dims(obs, axis=0)  ### (x,) -> (1, x)
 
