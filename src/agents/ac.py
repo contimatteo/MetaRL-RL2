@@ -97,22 +97,22 @@ class AC(Agent):
         self.meta_memory_layer.reset_states()
 
     def trajectories(
-        self, states: tf.Tensor, next_states: tf.Tensor, actions: tf.Tensor, rewards: tf.Tensor,
+        self, states: np.ndarray, next_states: np.ndarray, actions: np.ndarray, rewards: np.ndarray,
         prev_batch_last_action: Any, prev_batch_last_reward: Any
     ) -> Tuple[list, list]:
         if not self.meta_algorithm:
             return states, next_states
 
-        prev_actions = actions.numpy().copy()
-        prev_rewards = rewards.numpy().copy()
+        prev_actions = actions.copy()
+        prev_rewards = rewards.copy()
 
-        prev_actions = np.insert(prev_actions[:-1], 0, prev_batch_last_action)
         prev_rewards = np.insert(prev_rewards[:-1], 0, prev_batch_last_reward)
+        if self._discrete_action_space:
+            prev_actions = np.insert(prev_actions[:-1], 0, prev_batch_last_action)
+        else:
+            prev_actions = np.concatenate(([prev_batch_last_action], prev_actions[:-1, :]))
 
-        # INFO: we cannot convert {actions} to one-hot (encoding) because we have also NOT Discrete spaces
-        # prev_actions = tf.one_hot(prev_actions, self.n_actions)
-
-        prev_rewards = tf.constant(prev_rewards)
+        prev_rewards = tf.cast(prev_rewards, dtype=tf.float32)
         ### `actions` in discrete space are `int` but `keras.Model` takes only `float`
         prev_actions = tf.cast(prev_actions, dtype=tf.float32)
 
@@ -188,8 +188,11 @@ class AC(Agent):
 
         ### ADVANTAGES
 
+        prev_action_sample = np.zeros(self.action_space.shape, dtype=np.float32)
+        prev_reward_sample = 0.
+
         trajectories, next_trajectories = self.trajectories(
-            states, next_states, actions, rewards, 0, 0
+            states, next_states, actions, rewards, prev_action_sample, prev_reward_sample
         )
 
         states_val = self.critic_network(trajectories, training=False)
@@ -228,32 +231,40 @@ class AC(Agent):
             _actions = tf.gather(actions, b_idxs, axis=0)
             _next_states = tf.gather(next_states, b_idxs, axis=0)
             _disc_rewards = tf.gather(disc_rewards, b_idxs, axis=0)
-            _trajectories = tf.gather(trajectories, b_idxs, axis=0)
-            _next_trajectories = tf.gather(next_trajectories, b_idxs, axis=0)
             _advantages = tf.gather(advantages, b_idxs, axis=0)
+
+            _trajectories = None
+            _next_trajectories = None
+
+            if not self.meta_algorithm:
+                _trajectories = tf.gather(trajectories, b_idxs, axis=0)
+                _next_trajectories = tf.gather(next_trajectories, b_idxs, axis=0)
+            else:
+                _trajectories, _next_trajectories = [], []
+                for i in range(len(trajectories)):  # pylint: disable=consider-using-enumerate
+                    _trajectories.append(tf.gather(trajectories[i], b_idxs, axis=0))
+                for i in range(len(next_trajectories)):  # pylint: disable=consider-using-enumerate
+                    _next_trajectories.append(tf.gather(next_trajectories[i], b_idxs, axis=0))
 
             assert _states.shape[0] == _dones.shape[0]
             assert _states.shape[0] == _rewards.shape[0]
             assert _states.shape[0] == _actions.shape[0]
             assert _states.shape[0] == _next_states.shape[0]
             assert _states.shape[0] == _disc_rewards.shape[0]
-            assert _states.shape[0] == _trajectories.shape[0]
-            assert _states.shape[0] == _next_trajectories.shape[0]
             assert _states.shape[0] == _advantages.shape[0]
 
-            #
-
-            # if self.meta_algorithm:
-            #     # assert b_start_idx < 1 or meta_memory_states[0] is not None
-            #     # assert b_start_idx < 1 or meta_memory_states[1] is not None
-            #     ### assert that all elements of the trajectories have the same batch_size dimension
-            #     for i in range(len(_trajectories) - 1):
-            #         assert _trajectories[i].shape[0] == _next_trajectories[i].shape[0]
-            #         assert _trajectories[i].shape[0] == _trajectories[i + 1].shape[0]
-            #         assert _next_trajectories[i].shape[0] == _next_trajectories[i + 1].shape[0]
-            # else:
-            #     assert _trajectories.shape == _states.shape
-            #     assert _next_trajectories.shape == _next_states.shape
+            if self.meta_algorithm:
+                # assert b_start_idx < 1 or meta_memory_states[0] is not None
+                # assert b_start_idx < 1 or meta_memory_states[1] is not None
+                ### assert that all elements of the trajectories have the same batch_size dimension
+                for i in range(len(_trajectories) - 1):
+                    assert _trajectories[i].shape[0] == _next_trajectories[i].shape[0]
+                    assert _trajectories[i].shape[0] == _trajectories[i + 1].shape[0]
+                    assert _next_trajectories[i].shape[0] == _next_trajectories[i + 1].shape[0]
+            else:
+                assert _states.shape == _trajectories.shape
+                assert _next_states.shape == _next_trajectories.shape
+                assert _trajectories.shape == _next_trajectories.shape
 
             #
 

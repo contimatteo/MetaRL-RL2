@@ -23,9 +23,10 @@ class NetworkMetaPolicy(MetaPolicy):
         state_space: gym.Space,
         action_space: gym.Space,
         network: Model,
+        action_buonds: list = None,
         action_sampling_mode: str = 'distribution'
     ):
-        super().__init__(state_space, action_space)
+        super().__init__(state_space, action_space, action_buonds)
 
         assert action_sampling_mode in ACT_MODES
 
@@ -33,7 +34,12 @@ class NetworkMetaPolicy(MetaPolicy):
         self.action_sampling_mode = action_sampling_mode
 
     def _act(self, trajectory: Any, **kwargs) -> np.ndarray:
-        act_probs = self.policy_network(trajectory, training=False).numpy()
+        _actions = self.policy_network(trajectory, training=False)
+
+        if not self._is_discrete:
+            return _actions
+
+        act_probs = _actions.numpy()
 
         if self.action_sampling_mode == "distribution":
             # distribution = tfp.distributions.Categorical(
