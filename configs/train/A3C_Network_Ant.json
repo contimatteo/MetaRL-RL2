@@ -1,6 +1,6 @@
 {
 
-  "trial_id": "A3C_Network_CartPole",  
+  "trial_id": "A3C_Network_Ant",  
 
   "mode": "training",
   "n_trials": 1,
@@ -11,7 +11,7 @@
 
   "envs": [
     {
-      "name": "gym/CartPole",
+      "name": "gym/Ant",
       "params": {}
     }
   ],

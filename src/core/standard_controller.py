@@ -2,6 +2,7 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
+import time
 
 from progress.bar import Bar
 
@@ -43,26 +44,26 @@ class StandardController(Controller):
 
         n_trials = self._config.n_trials
         n_episodes = self._config.n_episodes
+        n_explore_episodes = self._config.n_explore_episodes
 
-        ### EXPLORATION
-
-        n_exploration_episodes = self._config.n_explore_episodes
+        #
 
         for trial in range(n_trials):
             env = self.envs[trial % len(self.envs)]
             self.agent.env_sync(env)
 
-            progbar = Bar(
-                f"[explore] TRIAL {trial+1:02} -> Episodes ...", max=n_exploration_episodes
-            )
+            ### INFO: after each trial, we have to reset the RNN hidden states.
+            self.agent.reset_memory_layer_states()
 
-            for _ in range(n_exploration_episodes):
+            ### EXPLORATION
+
+            progbar = Bar(f"[explore] TRIAL {trial+1:02} -> Episodes ...", max=n_explore_episodes)
+
+            for _ in range(n_explore_episodes):
                 state = env.reset()
                 self.agent.memory.reset()
 
-                steps = 0
-                done = False
-                next_state = None
+                steps, done, next_state = 0, False, None
 
                 while not done and steps < self._config.n_max_steps:
                     action = env.action_space.sample()
@@ -76,27 +77,18 @@ class StandardController(Controller):
                 progbar.next()
             progbar.finish()
 
-        ###
-
-        for trial in range(n_trials):
-            env = self.envs[trial % len(self.envs)]
-            self.agent.env_sync(env)
+            ### TRAINING
 
             progbar = Bar(f"[train] TRIAL {trial+1:02} -> Episodes ...", max=n_episodes)
-
-            ### INFO: after each trial, we have to reset the RNN hidden states
-            self.agent.reset_memory_layer_states()
 
             for _ in range(n_episodes):
                 state = env.reset()
                 self.agent.memory.reset()
 
-                steps = 0
-                done = False
+                steps, done, next_state = 0, False, None
                 tot_reward = 0
-                next_state = None
-                prev_action = np.zeros(env.action_space.shape)
                 prev_reward = 0.
+                prev_action = np.zeros(env.action_space.shape)
 
                 while not done and steps < self._config.n_max_steps:
                     trajectory = self.__trajectory(state, prev_action, prev_reward)
@@ -152,7 +144,7 @@ class StandardController(Controller):
         for trial in range(n_trials):
             env = self.envs[trial % len(self.envs)]
 
-            progbar = Bar(f" [test] TRIAL {trial+1:02} -> Episodes ...", max=n_episodes)
+            progbar = Bar(f"[test] TRIAL {trial+1:02} -> Episodes ...", max=n_episodes)
 
             for _ in range(n_episodes):
                 state = env.reset()
@@ -198,7 +190,32 @@ class StandardController(Controller):
         }
 
     def __render(self) -> None:
-        return {}
+        n_trials = self._config.n_trials
+        n_episodes = self._config.n_episodes
+
+        for trial in range(n_trials):
+            env = self.envs[trial % len(self.envs)]
+
+            for _ in range(n_episodes):
+                state = env.reset()
+                env.render()
+                time.sleep(0.1)
+
+                steps, done, next_state = 0, False, None
+                prev_reward = 0.
+                prev_action = np.zeros(env.action_space.shape)
+
+                while not done and steps < self._config.n_max_steps:
+                    trajectory = self.__trajectory(state, prev_action, prev_reward)
+                    action = self.__action(trajectory)
+                    next_state, _, done, _ = env.step(action)
+                    env.render()
+                    time.sleep(0.1)
+
+                    steps += 1
+                    state = next_state
+
+            time.sleep(2)
 
     #
 
@@ -251,14 +268,15 @@ class StandardController(Controller):
 
         elif self.mode == "inference":
             history = self.__inference()
-            self.__plot(history, history)
+            # self.__plot(history, history)
 
         elif self.mode == "render":
-            history = self.__render()
+            self.__render()
 
         else:
             raise Exception("mode not supported.")
 
         #
 
-        self.__save_history(history)
+        if self.mode == "training" or self.mode == "inference":
+            self.__save_history(history)

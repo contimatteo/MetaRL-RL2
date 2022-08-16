@@ -1,8 +1,7 @@
-from .base import ConfigScheme
+from .inference import InferenceConfig
 
 ###
 
 
-class RenderConfig(ConfigScheme):
-
+class RenderConfig(InferenceConfig):
     pass

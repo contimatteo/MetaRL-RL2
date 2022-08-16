@@ -132,9 +132,6 @@ class Controller():
             self.envs.append(env)
 
     def _load_networks(self) -> None:
-        if self.mode == "training":
-            return
-
         obs_space = self.env_obs_space
         action_space = self.env_action_space
         meta_network = self.meta_policy
