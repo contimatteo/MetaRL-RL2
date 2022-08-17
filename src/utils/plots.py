@@ -1,8 +1,8 @@
-import math
 import matplotlib.pyplot as plt
 import numpy as np
 
 from scipy.interpolate import make_interp_spline
+from scipy.signal import savgol_filter
 
 ###
 
@@ -10,8 +10,10 @@ from scipy.interpolate import make_interp_spline
 class PlotUtils:
 
     @staticmethod
-    def __interpolate(x, y, k=3):
-        return make_interp_spline(x, y, k=k)(x)
+    def interpolate(x, y, k):
+        window_length = int(len(x) / 5)
+        # return make_interp_spline(x, y, k=k)(x)
+        return savgol_filter(y, window_length, 3)
 
     @staticmethod
     def train_test_history(agent_name, history: dict):
@@ -29,12 +31,12 @@ class PlotUtils:
         test_rewards_avg = history["test_reward_avg"]
         test_dones_step = history["test_done_step"]
 
-        train_actor_loss = PlotUtils.__interpolate(train_ep, train_actor_loss, k=5)
-        train_critic_loss = PlotUtils.__interpolate(train_ep, train_critic_loss, k=5)
-        train_rewards_avg = PlotUtils.__interpolate(train_ep, train_rewards_avg, k=5)
-        train_dones_step = PlotUtils.__interpolate(train_ep, train_dones_step, k=5)
-        test_rewards_avg = PlotUtils.__interpolate(test_ep, test_rewards_avg, k=5)
-        test_dones_step = PlotUtils.__interpolate(test_ep, test_dones_step, k=5)
+        train_actor_loss = PlotUtils.interpolate(train_ep, train_actor_loss, k=5)
+        train_critic_loss = PlotUtils.interpolate(train_ep, train_critic_loss, k=5)
+        train_rewards_avg = PlotUtils.interpolate(train_ep, train_rewards_avg, k=5)
+        train_dones_step = PlotUtils.interpolate(train_ep, train_dones_step, k=5)
+        test_rewards_avg = PlotUtils.interpolate(test_ep, test_rewards_avg, k=5)
+        test_dones_step = PlotUtils.interpolate(test_ep, test_dones_step, k=5)
 
         axs[0, 0].plot(train_ep, train_actor_loss, 'tab:red')
         axs[0, 0].set_title('[train] Actor Loss (avg)')
@@ -51,10 +53,3 @@ class PlotUtils:
         axs[1, 1].plot(train_ep, train_dones_step, label="train")
         axs[1, 1].plot(test_ep, test_dones_step, label="test")
         axs[1, 1].legend()
-
-        # for ax in axs.flat:
-        # ax.set(xlabel='x-label', ylabel='y-label')
-
-        # Hide x labels and tick labels for top plots and y ticks for right plots.
-        # for ax in axs.flat:
-        #     ax.label_outer()

@@ -55,7 +55,7 @@ class BanditEnv(gym.Env):
             else:
                 reward = np.random.normal(self.r_dist[action][0], self.r_dist[action][1])
 
-        return self.obs, reward, done, self.info
+        return self.obs, int(reward), done, self.info
 
     def reset(self, seed: int = None, return_info: bool = False):
         super().seed(seed)
