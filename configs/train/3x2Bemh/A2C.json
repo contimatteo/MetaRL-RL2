@@ -1,0 +1,34 @@
+{
+  "trial_id": "A2C_3x2Bemh",
+
+  "mode": "training",
+  "n_trials": 500,
+  "n_episodes": 20,
+  "n_max_steps": 1000,
+
+  "policy": "Network",
+  "meta_policy": false,
+
+  "envs": [
+    {
+      "name": "bandits/TwoArmedDependentEasy",
+      "params": {}
+    },
+    {
+      "name": "bandits/TwoArmedDependentMedium",
+      "params": {}
+    },
+    {
+      "name": "bandits/TwoArmedDependentHard",
+      "params": {}
+    }
+  ],
+
+  "batch_size": 16,
+  "actor_opt_lr": 5e-5,
+  "critic_opt_lr": 5e-5,
+
+  "agent": "A2C",
+  "n_explore_episodes": 5,
+  "nn_shared_backbone": false
+}
