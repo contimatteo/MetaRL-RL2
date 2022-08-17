@@ -51,10 +51,3 @@ class PlotUtils:
         axs[1, 1].plot(train_ep, train_dones_step, label="train")
         axs[1, 1].plot(test_ep, test_dones_step, label="test")
         axs[1, 1].legend()
-
-        # for ax in axs.flat:
-        # ax.set(xlabel='x-label', ylabel='y-label')
-
-        # Hide x labels and tick labels for top plots and y ticks for right plots.
-        # for ax in axs.flat:
-        #     ax.label_outer()
