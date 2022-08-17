@@ -24,13 +24,7 @@ class StandardController(Controller):
         return trajectory
 
     def __action(self, trajectory) -> Any:
-        # action = self.agent.act(trajectory)[0]
-        action = self.policy.act(trajectory)[0]
-
-        if self.env_actions_are_discrete:
-            action = int(action)
-
-        return action
+        return self.policy.act(trajectory)
 
     #
 

@@ -7,6 +7,7 @@ import tensorflow_probability as tfp
 
 from tensorflow.python.keras import Model
 
+from utils import ActionUtils
 from .meta_policy import MetaPolicy
 
 ###
@@ -34,22 +35,36 @@ class NetworkMetaPolicy(MetaPolicy):
         self.action_sampling_mode = action_sampling_mode
 
     def _act(self, trajectory: Any, **kwargs) -> np.ndarray:
-        _actions = self.policy_network(trajectory, training=False)
+        coefficients = self.policy_network(trajectory, training=False)
 
-        if not self._is_discrete:
-            return _actions
+        ### match batch dimension
+        assert coefficients.shape[0] == trajectory[0].shape[0]
+        ### remove batch dimension
+        coefficients = coefficients[0]
 
-        act_probs = _actions.numpy()
+        distribution = ActionUtils.coefficients_to_distribution(self.action_space, coefficients)
 
-        if self.action_sampling_mode == "distribution":
-            # distribution = tfp.distributions.Categorical(
-            #     probs=act_probs + .000001, dtype=tf.float32
-            # )
-            distribution = tfp.distributions.Categorical(logits=act_probs, dtype=tf.float32)
+        actions = distribution.sample()
+        actions = actions.numpy()
 
-            actions = distribution.sample().numpy()
-            assert actions.shape[0] == trajectory[0].shape[0]
+        return actions
 
-            return actions
+        # _actions = self.policy_network(trajectory, training=False)
 
-        raise Exception("[DeepNetworkPolicy] `action_sampling_mode` not supported.")
+        # if not self._is_discrete:
+        #     return _actions
+
+        # act_probs = _actions.numpy()
+
+        # if self.action_sampling_mode == "distribution":
+        #     # distribution = tfp.distributions.Categorical(
+        #     #     probs=act_probs + .000001, dtype=tf.float32
+        #     # )
+        #     distribution = tfp.distributions.Categorical(logits=act_probs, dtype=tf.float32)
+
+        #     actions = distribution.sample().numpy()
+        #     assert actions.shape[0] == trajectory[0].shape[0]
+
+        #     return actions
+
+        # raise Exception("[DeepNetworkPolicy] `action_sampling_mode` not supported.")

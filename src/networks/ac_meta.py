@@ -2,6 +2,7 @@ from typing import Tuple, Optional
 
 import gym
 
+from gym.spaces import Discrete
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.layers import Input
 from tensorflow.python.keras.layers import Flatten
@@ -11,6 +12,7 @@ from networks.layers import A_HeadLayer, C_HeadLayer
 from networks.layers import AC_EncoderLayer
 from networks.layers import AC_BackboneLayer
 from networks.layers import AC_MetaMemoryLayer
+from utils import ActionUtils
 
 ###
 
@@ -20,10 +22,10 @@ def MetaActorCriticNetworks(
     action_space: gym.Space,
     shared_backbone: bool,
 ) -> Tuple[Model, Model]:
-    discrete = isinstance(action_space, gym.spaces.discrete.Discrete)
+    discrete = ActionUtils.is_space_discrete(action_space)
+    n_actions = ActionUtils.n(action_space)
 
     obs_shape = obs_space.shape if len(obs_space.shape) > 0 else (1, )
-    n_actions = action_space.n if discrete else action_space.shape[0]
 
     ### input
     input_obs = Input(shape=obs_shape, name="Input_Observations")

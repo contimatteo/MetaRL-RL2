@@ -9,20 +9,23 @@ load_dotenv()
 import os
 import warnings
 
-# warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 ###
 
+import os
 import logging
-# logging.getLogger("tensorflow").setLevel(logging.WARNING)
+
+logging.disable(logging.WARNING)
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+logging.getLogger("tensorflow").setLevel(logging.ERROR)
 
 import tensorflow as tf
-import tensorflow.python.util.deprecation as deprecation
+from tensorflow.python.util import deprecation
 
 deprecation._PRINT_DEPRECATION_WARNINGS = False
 # tf.get_logger().setLevel('INFO')
-
 # tf.debugging.set_log_device_placement(False)
 
 ###

@@ -24,6 +24,7 @@ from policies import RandomMetaPolicy
 from policies import NetworkPolicy
 from policies import NetworkMetaPolicy
 from policies import EpsilonGreedyPolicy
+from utils import ActionUtils
 from utils import ControllerUtils
 from utils import LocalStorageManager
 
@@ -65,7 +66,7 @@ class Controller():
 
     @property
     def env_actions_are_discrete(self) -> bool:
-        return isinstance(self.env_action_space, Discrete)
+        return ActionUtils.is_space_discrete(self.env_action_space)
 
     @property
     def meta_policy(self) -> bool:
