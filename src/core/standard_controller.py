@@ -107,7 +107,7 @@ class StandardController(Controller):
                 ep_actor_losses.append(actor_loss)
                 ep_critic_losses.append(critic_loss)
                 ep_rewards_tot.append(tot_reward)
-                ep_rewards_avg.append(np.mean(ep_rewards_tot[-25:]))
+                ep_rewards_avg.append(np.mean(ep_rewards_tot[-100:]))
                 ep_dones_step.append(steps)
 
                 progbar.next()
@@ -168,7 +168,7 @@ class StandardController(Controller):
 
                 ep_steps.append(steps)
                 ep_rewards_tot.append(tot_reward)
-                ep_rewards_avg.append(np.mean(ep_rewards_tot[-25:]))
+                ep_rewards_avg.append(np.mean(ep_rewards_tot[-100:]))
                 ep_dones_step.append(steps)
 
                 progbar.next()

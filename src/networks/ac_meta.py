@@ -24,12 +24,13 @@ def MetaActorCriticNetworks(
 ) -> Tuple[Model, Model]:
     discrete = ActionUtils.is_space_discrete(action_space)
     n_actions = ActionUtils.n(action_space)
+    n_actions_input = 1 if discrete else n_actions
 
     obs_shape = obs_space.shape if len(obs_space.shape) > 0 else (1, )
 
     ### input
     input_obs = Input(shape=obs_shape, name="Input_Observations")
-    input_prev_action = Input(shape=(n_actions, ), name="Input_PreviousAction")
+    input_prev_action = Input(shape=(n_actions_input, ), name="Input_PreviousAction")
     input_prev_reward = Input(shape=(1, ), name="Input_PreviousReward")
     ### encoder
     l_encoder = AC_EncoderLayer()
