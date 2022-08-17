@@ -19,12 +19,6 @@ def __load_trials(configs: dict) -> List[dict]:
         _url = _url.joinpath(trial["mode"])
         _url = _url.joinpath(trial["id"] + ".json")
 
-        print("")
-        print("")
-        print(str(_url))
-        print("")
-        print("")
-
         assert _url.exists()
         assert _url.is_file()
 
