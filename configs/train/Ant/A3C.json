@@ -3,8 +3,8 @@
 
   "mode": "training",
   "n_trials": 1,
-  "n_episodes": 50,
-  "n_max_steps": 500,
+  "n_episodes": 3000,
+  "n_max_steps": 10000,
 
   "policy": "Network",
   "meta_policy": false,
@@ -17,10 +17,10 @@
   ],
 
   "batch_size": 64,
-  "actor_opt_lr": 1e-4,
-  "critic_opt_lr": 1e-4,
+  "actor_opt_lr": 5e-5,
+  "critic_opt_lr": 5e-5,
 
   "agent": "A3C",
-  "n_explore_episodes": 1,
+  "n_explore_episodes": 500,
   "nn_shared_backbone": false
 }
