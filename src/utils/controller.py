@@ -3,6 +3,7 @@ from typing import Tuple, Optional
 import gym
 
 import metagym.quadrotor
+import metagym.quadrupedal
 
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.optimizers import Optimizer
@@ -52,13 +53,32 @@ class ControllerUtils():
         if name == "bandits/TenArmedRandomFixed":
             return BanditTenArmedRandomFixed()
 
-        if name == "metagym/quadrotor":
+        if name == "metagym/Quadrotor":
             task = params["task"] if "task" in params else None
 
             assert isinstance(task, str)
             assert task in ["no_collision", "velocity_control", "hovering_control"]
 
             return gym.make("quadrotor-v0", task=task)
+
+        if name == "metagym/Quadrupedal":
+            task = params["task"] if "task" in params else None
+
+            assert isinstance(task, str)
+            assert task in [
+                "stairstair",
+                "stairslope",
+                "slopestair",
+                "slopeslope",
+                "stair13",
+                "terrain",
+                "balancebeam",
+                "gallop",
+                "Cave",
+                "ground",
+            ]
+
+            return gym.make('quadrupedal-v0', task=task)
 
         #
 

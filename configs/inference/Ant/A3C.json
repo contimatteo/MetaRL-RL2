@@ -3,8 +3,8 @@
 
   "mode": "inference",
   "n_trials": 1,
-  "n_episodes": 25,
-  "n_max_steps": 100,
+  "n_episodes": 100,
+  "n_max_steps": 10000,
 
   "policy": "Network",
   "meta_policy": false,

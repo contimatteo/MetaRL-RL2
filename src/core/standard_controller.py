@@ -1,5 +1,6 @@
 from typing import Any
 
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 import time
@@ -7,6 +8,7 @@ import time
 from progress.bar import Bar
 
 from utils import PlotUtils
+from utils import LocalStorageManager
 
 from .controller import Controller
 
@@ -98,12 +100,14 @@ class StandardController(Controller):
                     tot_reward += reward
 
                 actor_loss, critic_loss = self.agent.train(batch_size=self._config.batch_size)
+                actor_loss = float(actor_loss)
+                critic_loss = float(critic_loss)
 
                 ep_steps.append(steps)
                 ep_actor_losses.append(actor_loss)
                 ep_critic_losses.append(critic_loss)
                 ep_rewards_tot.append(tot_reward)
-                ep_rewards_avg.append(np.mean(ep_rewards_tot[-25:]))
+                ep_rewards_avg.append(np.mean(ep_rewards_tot[-100:]))
                 ep_dones_step.append(steps)
 
                 progbar.next()
@@ -163,10 +167,8 @@ class StandardController(Controller):
                     tot_reward += reward
 
                 ep_steps.append(steps)
-                ep_actor_losses.append(0.)
-                ep_critic_losses.append(0.)
                 ep_rewards_tot.append(tot_reward)
-                ep_rewards_avg.append(np.mean(ep_rewards_tot[-25:]))
+                ep_rewards_avg.append(np.mean(ep_rewards_tot[-100:]))
                 ep_dones_step.append(steps)
 
                 progbar.next()
@@ -236,7 +238,13 @@ class StandardController(Controller):
         plt.show()
 
     def __save_history(self, history) -> None:
-        pass
+        url = LocalStorageManager.dirs.tmp_history
+        url = url.joinpath(f"{self._config.mode}")
+        url.mkdir(exist_ok=True, parents=True)
+        url = url.joinpath(f"{self._config.trial_id}.json")
+
+        with open(url, 'w', encoding='utf-8') as f:
+            json.dump(history, f, ensure_ascii=False)
 
     #
 
@@ -258,11 +266,11 @@ class StandardController(Controller):
         if self.mode == "training":
             history = self.__train()
             self._save_trained_models()
-            self.__plot(history, history)
+            # self.__plot(history, history)
 
         elif self.mode == "inference":
             history = self.__inference()
-            self.__plot(history, history)
+            # self.__plot(history, history)
 
         elif self.mode == "render":
             self.__render()

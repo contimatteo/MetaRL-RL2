@@ -4,7 +4,7 @@
   "mode": "inference",
   "n_trials": 1,
   "n_episodes": 100,
-  "n_max_steps": 500,
+  "n_max_steps": 1000,
 
   "policy": "Network",
   "meta_policy": false,

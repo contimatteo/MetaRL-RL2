@@ -1,9 +1,9 @@
 {
-  "trial_id": "A3C_Network_Ant",
+  "trial_id": "A3C_Ant",
 
   "mode": "training",
   "n_trials": 1,
-  "n_episodes": 3000,
+  "n_episodes": 500,
   "n_max_steps": 10000,
 
   "policy": "Network",
@@ -11,8 +11,10 @@
 
   "envs": [
     {
-      "name": "gym/Ant",
-      "params": {}
+      "name": "metagym/Quadrotor",
+      "params": {
+        "task": "hovering_control"
+      }
     }
   ],
 
@@ -21,6 +23,6 @@
   "critic_opt_lr": 5e-5,
 
   "agent": "A3C",
-  "n_explore_episodes": 500,
+  "n_explore_episodes": 100,
   "nn_shared_backbone": false
 }
