@@ -46,8 +46,8 @@ def __plots(configs) -> None:
     for trial in trials:
         y = trial["data"]
         x = np.arange(0, trial["n_episodes"], 1)
-        y = PlotUtils.interpolate(x, y, k=7)
-        plt.plot(x, y, label=trial["label"])
+        y = PlotUtils.interpolate(x, y, k=3)
+        plt.plot(x, y, label=trial["label"], linewidth=2.0)
 
     plt.legend()
     plt.show()

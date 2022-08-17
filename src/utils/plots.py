@@ -1,8 +1,8 @@
-import math
 import matplotlib.pyplot as plt
 import numpy as np
 
 from scipy.interpolate import make_interp_spline
+from scipy.signal import savgol_filter
 
 ###
 
@@ -10,8 +10,10 @@ from scipy.interpolate import make_interp_spline
 class PlotUtils:
 
     @staticmethod
-    def interpolate(x, y, k=3):
-        return make_interp_spline(x, y, k=k)(x)
+    def interpolate(x, y, k):
+        window_length = int(len(x) / 5)
+        # return make_interp_spline(x, y, k=k)(x)
+        return savgol_filter(y, window_length, 3)
 
     @staticmethod
     def train_test_history(agent_name, history: dict):

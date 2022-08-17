@@ -11,8 +11,10 @@
 
   "envs": [
     {
-      "name": "gym/Ant",
-      "params": {}
+      "name": "metagym/Quadrotor",
+      "params": {
+        "task": "hovering_control"
+      }
     }
   ],
 
