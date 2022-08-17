@@ -4,7 +4,7 @@
   "mode": "training",
   "n_trials": 500,
   "n_episodes": 20,
-  "n_max_steps": 1000,
+  "n_max_steps": 100,
 
   "policy": "Network",
   "meta_policy": false,
