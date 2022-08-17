@@ -1,9 +1,9 @@
 {
-  "trial_id": "A3C_Network_CartPole",
+  "trial_id": "A3C_CartPole",
 
   "mode": "training",
   "n_trials": 1,
-  "n_episodes": 3000,
+  "n_episodes": 1000,
   "n_max_steps": 10000,
 
   "policy": "Network",
@@ -21,6 +21,6 @@
   "critic_opt_lr": 5e-5,
 
   "agent": "A3C",
-  "n_explore_episodes": 500,
+  "n_explore_episodes": 250,
   "nn_shared_backbone": false
 }

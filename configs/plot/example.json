@@ -1,17 +1,17 @@
 {
-    "title": "Ant vs Carpole",
+    "title": "(Cartpole) A2C vs A3C",
     "trials": [
         {
-            "label": "Ant",
-            "mode": "inference",
-            "metric": "reward_avg",
-            "id": "A3C_Network_Ant"
+            "id": "A2C_CartPole",
+            "label": "A2C",
+            "mode": "training",
+            "metric": "reward_avg"
         },
         {
-            "label": "CartPole",
-            "mode": "inference",
-            "metric": "reward_avg",
-            "id": "A3C_Network_CartPole"
+            "id": "A3C_CartPole",
+            "label": "A3C",
+            "mode": "training",
+            "metric": "reward_avg"
         }
     ]
 }
