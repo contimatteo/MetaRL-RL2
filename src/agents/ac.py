@@ -207,8 +207,8 @@ class AC(Agent):
         next_states_val = tf.reshape(next_states_val, (len(next_states_val)))
 
         ### Action Advantage Estimates
-        advantages = self._advantage_estimates(
-            rewards, disc_rewards, states_val, next_states_val, dones
+        advantages = tf.stop_gradient(
+            self._advantage_estimates(rewards, disc_rewards, states_val, next_states_val, dones)
         )
         advantages = self.__standardize_advantages(advantages)
 
@@ -270,16 +270,17 @@ class AC(Agent):
 
             with tf.GradientTape() as a_tape, tf.GradientTape() as c_tape:
                 _states_val = self.critic_network(_trajectories, training=True)
-                actions_probs = self.actor_network(_trajectories, training=True)
+                _actions_coeff = self.actor_network(_trajectories, training=True)
 
                 _states_val = tf.reshape(_states_val, (len(_states_val)))
+                _deltas = _advantages
+                # _deltas = tf.math.subtract(_advantages, _states_val)
 
-                deltas = advantages
-                # deltas = tf.math.subtract(_advantages, _states_val)
-
-                actor_loss = self._actor_network_loss(actions_probs, _actions, deltas)
+                actor_loss = self._actor_network_loss(
+                    _actions_coeff, _actions, tf.stop_gradient(_deltas)
+                )
                 critic_loss = self._critic_network_loss(
-                    _rewards, _disc_rewards, _advantages, _states_val
+                    _rewards, _disc_rewards, tf.stop_gradient(_advantages), _states_val
                 )
 
                 assert not tf.math.is_inf(actor_loss) and not tf.math.is_nan(actor_loss)

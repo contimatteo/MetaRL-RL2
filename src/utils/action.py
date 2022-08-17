@@ -11,10 +11,6 @@ from tensorflow_probability.python.distributions import Distribution
 
 ###
 
-PY_NUMERIC_EPS = 1e-8
-
-###
-
 
 class ActionUtils():
 
@@ -41,14 +37,15 @@ class ActionUtils():
         if discrete:
             assert coefficients.shape[0] == n_actions
 
-            probabilities = coefficients.numpy()
+            probabilities = coefficients
             distribution = tfp.distributions.Categorical(logits=probabilities, dtype=tf.float32)
         else:
             assert coefficients.shape[0] == n_actions * 2
 
             mu = coefficients[:n_actions]
-            sigma = coefficients[n_actions:] + PY_NUMERIC_EPS
-            # sigma = tf.nn.softplus(sigma) + 1e-5
+            sigma = coefficients[n_actions:]
+            # sigma = tf.nn.softplus(sigma)
+            # sigma += 1e-5
 
             assert mu.shape[0] == sigma.shape[0] == n_actions
 
