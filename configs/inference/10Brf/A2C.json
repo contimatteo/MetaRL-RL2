@@ -1,0 +1,34 @@
+{
+  "trial_id": "A2C_10Brf",
+
+  "mode": "training",
+  "n_trials": 20,
+  "n_episodes": 5,
+  "n_max_steps": 10000,
+
+  "policy": "Network",
+  "meta_policy": false,
+
+  "envs": [
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    },
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    },
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    },
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    },
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    }
+  ]
+}

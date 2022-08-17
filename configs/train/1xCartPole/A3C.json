@@ -16,7 +16,7 @@
     }
   ],
 
-  "batch_size": 64,
+  "batch_size": 16,
   "actor_opt_lr": 5e-5,
   "critic_opt_lr": 5e-5,
 

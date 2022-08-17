@@ -1,5 +1,5 @@
 {
-  "trial_id": "A2C_CartPole",
+  "trial_id": "A2C_1xQuadrotor",
 
   "mode": "training",
   "n_trials": 1,
@@ -11,12 +11,14 @@
 
   "envs": [
     {
-      "name": "gym/CartPole",
-      "params": {}
+      "name": "metagym/Quadrotor",
+      "params": {
+        "task": "hovering_control"
+      }
     }
   ],
 
-  "batch_size": 64,
+  "batch_size": 16,
   "actor_opt_lr": 5e-5,
   "critic_opt_lr": 5e-5,
 

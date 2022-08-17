@@ -1,5 +1,5 @@
 {
-  "trial_id": "MetaA3C_CartPole",
+  "trial_id": "A2C_CartPole",
 
   "mode": "training",
   "n_trials": 1,
@@ -7,7 +7,7 @@
   "n_max_steps": 10000,
 
   "policy": "Network",
-  "meta_policy": true,
+  "meta_policy": false,
 
   "envs": [
     {
@@ -16,11 +16,11 @@
     }
   ],
 
-  "batch_size": 64,
+  "batch_size": 16,
   "actor_opt_lr": 5e-5,
   "critic_opt_lr": 5e-5,
 
-  "agent": "A3C",
+  "agent": "A2C",
   "n_explore_episodes": 250,
   "nn_shared_backbone": false
 }

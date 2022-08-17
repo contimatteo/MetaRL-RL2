@@ -1,0 +1,40 @@
+{
+  "trial_id": "A2C_3xQuadrotor",
+
+  "mode": "training",
+  "n_trials": 500,
+  "n_episodes": 20,
+  "n_max_steps": 10000,
+
+  "policy": "Network",
+  "meta_policy": false,
+
+  "envs": [
+    {
+      "name": "metagym/Quadrotor",
+      "params": {
+        "task": "no_collision"
+      }
+    },
+    {
+      "name": "metagym/Quadrotor",
+      "params": {
+        "task": "velocity_control"
+      }
+    },
+    {
+      "name": "metagym/Quadrotor",
+      "params": {
+        "task": "hovering_control"
+      }
+    }
+  ],
+
+  "batch_size": 16,
+  "actor_opt_lr": 5e-5,
+  "critic_opt_lr": 5e-5,
+
+  "agent": "A2C",
+  "n_explore_episodes": 5,
+  "nn_shared_backbone": false
+}

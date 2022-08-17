@@ -1,33 +1,33 @@
 {
-  "trial_id": "A2C_10Brf",
+  "trial_id": "A2C_5x10Brf",
 
   "mode": "training",
-  "n_trials": 100,
-  "n_episodes": 10,
-  "n_max_steps": 100,
+  "n_trials": 500,
+  "n_episodes": 20,
+  "n_max_steps": 1000,
 
   "policy": "Network",
   "meta_policy": false,
 
   "envs": [
     {
-        "name": "bandits/TenArmedRandomFixed",
+      "name": "bandits/TenArmedRandomFixed",
       "params": {}
     },
     {
-        "name": "bandits/TenArmedRandomFixed",
+      "name": "bandits/TenArmedRandomFixed",
       "params": {}
     },
     {
-        "name": "bandits/TenArmedRandomFixed",
+      "name": "bandits/TenArmedRandomFixed",
       "params": {}
     },
     {
-        "name": "bandits/TenArmedRandomFixed",
+      "name": "bandits/TenArmedRandomFixed",
       "params": {}
     },
     {
-        "name": "bandits/TenArmedRandomFixed",
+      "name": "bandits/TenArmedRandomFixed",
       "params": {}
     }
   ],
@@ -37,6 +37,6 @@
   "critic_opt_lr": 5e-5,
 
   "agent": "A2C",
-  "n_explore_episodes": 1,
+  "n_explore_episodes": 5,
   "nn_shared_backbone": false
 }

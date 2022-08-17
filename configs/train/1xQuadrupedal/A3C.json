@@ -1,5 +1,5 @@
 {
-  "trial_id": "MetaA2C_CartPole",
+  "trial_id": "A3C_1xQuadrupedal",
 
   "mode": "training",
   "n_trials": 1,
@@ -7,20 +7,22 @@
   "n_max_steps": 10000,
 
   "policy": "Network",
-  "meta_policy": true,
-
+  "meta_policy": false,
+  
   "envs": [
     {
-      "name": "gym/CartPole",
-      "params": {}
+      "name": "metagym/Quadrupedal",
+      "params": {
+        "task": "stairstair"
+      }
     }
   ],
 
-  "batch_size": 64,
+  "batch_size": 16,
   "actor_opt_lr": 5e-5,
   "critic_opt_lr": 5e-5,
 
-  "agent": "A2C",
+  "agent": "A3C",
   "n_explore_episodes": 250,
   "nn_shared_backbone": false
 }
