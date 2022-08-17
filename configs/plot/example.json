@@ -3,11 +3,15 @@
     "trials": [
         {
             "label": "Ant",
-            "file_url": "inference/Ant/A3C.json"
+            "mode": "inference",
+            "metric": "reward_avg",
+            "id": "A3C_Network_Ant"
         },
         {
             "label": "CartPole",
-            "file_url": "inference/CartPole/A3C.json"
+            "mode": "inference",
+            "metric": "reward_avg",
+            "id": "A3C_Network_CartPole"
         }
     ]
 }

@@ -1,5 +1,6 @@
 from typing import Any
 
+import json
 import matplotlib.pyplot as plt
 import numpy as np
 import time
@@ -7,6 +8,7 @@ import time
 from progress.bar import Bar
 
 from utils import PlotUtils
+from utils import LocalStorageManager
 
 from .controller import Controller
 
@@ -236,7 +238,13 @@ class StandardController(Controller):
         plt.show()
 
     def __save_history(self, history) -> None:
-        pass
+        url = LocalStorageManager.dirs.tmp_history
+        url = url.joinpath(f"{self._config.mode}")
+        url.mkdir(exist_ok=True, parents=True)
+        url = url.joinpath(f"{self._config.trial_id}.json")
+
+        with open(url, 'w', encoding='utf-8') as f:
+            json.dump(history, f, ensure_ascii=False)
 
     #
 

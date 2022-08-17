@@ -14,32 +14,46 @@ from utils import PlotUtils
 
 def __load_trials(configs: dict) -> List[dict]:
 
-    def __load_trial_json(url: str) -> dict:
-        _url = LocalStorageManager.dirs.configs.joinpath(url)
+    def __load_trial_json(trial: dict) -> dict:
+        _url = LocalStorageManager.dirs.tmp_history
+        _url = _url.joinpath(trial["mode"])
+        _url = _url.joinpath(trial["id"] + ".json")
+
+        print("")
+        print("")
+        print(str(_url))
+        print("")
+        print("")
+
         assert _url.exists()
         assert _url.is_file()
+
         with open(str(_url), 'r', encoding="utf-8") as file:
             return json.load(file)
 
-    trials = []
+    for i, trial in enumerate(configs["trials"]):
+        data = __load_trial_json(trial)
+        configs["trials"][i]["n_episodes"] = data["n_episodes"]
+        configs["trials"][i]["data"] = data[trial["metric"]]
 
-    for trial_config in configs["trials"]:
-        trial_data = __load_trial_json(trial_config["file_url"])
-        trials.append(trial_data)
-
-    return trials
+    return configs
 
 
-def __plots(configs, trials_data: List[dict]) -> None:
+def __plots(configs) -> None:
+    title = configs["title"]
+    trials = configs["trials"]
+
     fig = plt.figure()
 
-    fig.canvas.manager.set_window_title(configs["title"])
+    fig.canvas.manager.set_window_title(title)
 
-    for _ in trials_data:
-        y = [10, 20, 30, 20, 10]
-        x = np.arange(0, len(y), 1)
-        y = PlotUtils.interpolate(x, y, k=1)
-        plt.plot(x, y, label="train")
+    #
+
+    for trial in trials:
+        y = trial["data"]
+        x = np.arange(0, trial["n_episodes"], 1)
+        y = PlotUtils.interpolate(x, y, k=3)
+        plt.plot(x, y, label=trial["label"])
 
     plt.legend()
     plt.show()
@@ -62,9 +76,9 @@ def main(args):
 
     #
 
-    trials_data = __load_trials(config)
+    config = __load_trials(config)
 
-    __plots(config, [None])
+    __plots(config)
 
 
 ###
