@@ -155,7 +155,7 @@ class AC(Agent):
     ) -> T_Tensor:
         raise NotImplementedError
 
-    def _actor_network_loss(self, actions_probs: Any, actions: Any, advantages: Any):
+    def _actor_network_loss(self, actions_coefficients: Any, actions: Any, advantages: Any):
         raise NotImplementedError
 
     def _critic_network_loss(

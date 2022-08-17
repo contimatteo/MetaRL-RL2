@@ -2,6 +2,8 @@
 
 from .args import parse_args
 
+from .action import ActionUtils
+
 from .actor_critic import AdvantageEstimateUtils
 
 from .controller import ControllerUtils

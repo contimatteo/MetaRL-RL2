@@ -9,7 +9,7 @@ load_dotenv()
 import os
 import warnings
 
-# warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore")
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 ###
@@ -18,7 +18,7 @@ import logging
 # logging.getLogger("tensorflow").setLevel(logging.WARNING)
 
 import tensorflow as tf
-import tensorflow.python.util.deprecation as deprecation
+from tensorflow.python.util import deprecation
 
 deprecation._PRINT_DEPRECATION_WARNINGS = False
 # tf.get_logger().setLevel('INFO')

@@ -8,6 +8,7 @@ import tensorflow_probability as tfp
 
 from tensorflow.python.keras import Model
 
+from utils import ActionUtils
 from .policy import Policy
 
 ###
@@ -34,23 +35,35 @@ class NetworkPolicy(Policy):
         self.policy_network = network
         self.action_sampling_mode = action_sampling_mode
 
-    def _act(self, obs: Any, **kwargs) -> np.ndarray:
-        _actions = self.policy_network(obs, training=False)
+    def _act(self, trajectory: np.ndarray, **kwargs) -> np.ndarray:
+        coefficients = self.policy_network(trajectory, training=False)
 
-        if not self._is_discrete:
-            return _actions
+        ### match batch dimension
+        assert coefficients.shape[0] == trajectory.shape[0]
+        ### remove batch dimension
+        coefficients = coefficients[0]
 
-        act_probs = _actions.numpy()
+        distribution = ActionUtils.coefficients_to_distribution(self.action_space, coefficients)
 
-        if self.action_sampling_mode == "distribution":
-            # distribution = tfp.distributions.Categorical(
-            #     probs=act_probs + .000001, dtype=tf.float32
-            # )
-            distribution = tfp.distributions.Categorical(logits=act_probs, dtype=tf.float32)
+        actions = distribution.sample()
+        actions = actions.numpy()
 
-            actions = distribution.sample().numpy()
-            assert actions.shape[0] == obs.shape[0]
+        return actions
 
-            return actions
+        # if not self._is_discrete:
+        #     return _actions
 
-        raise Exception("[DeepNetworkPolicy] `action_sampling_mode` not supported.")
+        # act_probs = _actions.numpy()
+
+        # if self.action_sampling_mode == "distribution":
+        #     # distribution = tfp.distributions.Categorical(
+        #     #     probs=act_probs + .000001, dtype=tf.float32
+        #     # )
+        #     distribution = tfp.distributions.Categorical(logits=act_probs, dtype=tf.float32)
+
+        #     actions = distribution.sample().numpy()
+        #     assert actions.shape[0] == obs.shape[0]
+
+        #     return actions
+
+        # raise Exception("[DeepNetworkPolicy] `action_sampling_mode` not supported.")

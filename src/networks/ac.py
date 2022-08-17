@@ -7,6 +7,7 @@ from tensorflow.python.keras.layers import Input
 
 from networks.layers import A_HeadLayer, C_HeadLayer
 from networks.layers import AC_EncoderLayer, AC_BackboneLayer
+from utils import ActionUtils
 
 ###
 
@@ -16,10 +17,10 @@ def ActorCriticNetworks(
     action_space: gym.Space,
     shared_backbone: bool,
 ) -> Tuple[Model, Model]:
-    discrete = isinstance(action_space, gym.spaces.discrete.Discrete)
+    discrete = ActionUtils.is_space_discrete(action_space)
+    n_actions = ActionUtils.n(action_space)
 
     input_shape = obs_space.shape if len(obs_space.shape) > 0 else (1, )
-    n_actions = action_space.n if discrete else action_space.shape[0]
 
     ### input
     l_input = Input(shape=input_shape)

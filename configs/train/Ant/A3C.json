@@ -16,11 +16,11 @@
     }
   ],
 
-  "batch_size": 8,
-  "actor_opt_lr": 5e-5,
-  "critic_opt_lr": 5e-5,
+  "batch_size": 64,
+  "actor_opt_lr": 1e-4,
+  "critic_opt_lr": 1e-4,
 
   "agent": "A3C",
-  "n_explore_episodes": 25,
+  "n_explore_episodes": 1,
   "nn_shared_backbone": false
 }
