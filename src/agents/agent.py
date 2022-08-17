@@ -3,10 +3,9 @@ from typing import Any
 import gym
 import numpy as np
 
-from gym.spaces import Discrete
-
 from memory import SequentialMemory
 from policies import Policy
+from utils import ActionUtils
 
 ###
 
@@ -41,7 +40,7 @@ class Agent():
 
     @property
     def _discrete_action_space(self) -> bool:
-        return isinstance(self.action_space, Discrete)
+        return ActionUtils.is_space_discrete(self.action_space)
 
     #
 

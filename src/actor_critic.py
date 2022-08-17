@@ -24,6 +24,7 @@ from policies import EpsilonGreedyPolicy
 from policies import NetworkPolicy
 from policies import NetworkMetaPolicy
 from networks import MetaActorCriticNetworks
+from utils import ActionUtils
 from utils import PlotUtils
 
 ###
@@ -114,8 +115,8 @@ def run(n_episodes: int, env: gym.Env, agent: A2C, training: bool, render: bool 
                 trajectory = state
 
             action = agent.act(trajectory)[0]
-            if isinstance(env.action_space, Discrete):
-                action = int(action)
+            # if ActionUtils.is_space_discrete(env.action_space):
+            #     action = int(action)
             next_state, reward, done, _ = env.step(action)
             if render:
                 env.render()

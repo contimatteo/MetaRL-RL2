@@ -8,6 +8,7 @@ from tensorflow.python.keras.losses import mean_squared_error
 from tensorflow.python.keras.losses import MeanSquaredError
 
 from utils import AdvantageEstimateUtils
+from utils import ActionUtils
 
 from .a2c import A2C
 
@@ -70,15 +71,16 @@ class A3C(A2C):
 
     #
 
-    def _actor_network_loss(self, actions_probs: Any, actions: Any, advantages: Any):
+    def _actor_network_loss(self, actions_coefficients: Any, actions: Any, advantages: Any):
         entropy_losses = []
         policy_losses = []
 
-        for probs, action_taken, advantage in zip(actions_probs, actions, advantages.numpy()):
+        for coeff, action_taken, advantage in zip(
+            actions_coefficients, actions, advantages.numpy()
+        ):
             advantage = tf.constant(advantage)  ### exclude from gradient computation
-            # distribution = tfp.distributions.Categorical(probs=probs + .000001, dtype=tf.float32)
-            distribution = tfp.distributions.Categorical(logits=probs, dtype=tf.float32)
             #
+            distribution = ActionUtils.coefficients_to_distribution(self.action_space, coeff)
             action_prob = distribution.prob(action_taken)
             action_log_prob = distribution.log_prob(action_taken)
             ### Policy
