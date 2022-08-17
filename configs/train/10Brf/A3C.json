@@ -1,0 +1,42 @@
+{
+  "trial_id": "A3C_10Brf",
+
+  "mode": "training",
+  "n_trials": 100,
+  "n_episodes": 10,
+  "n_max_steps": 1000,
+
+  "policy": "Network",
+  "meta_policy": false,
+
+  "envs": [
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    },
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    },
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    },
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    },
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    }
+  ],
+
+  "batch_size": 32,
+  "actor_opt_lr": 5e-5,
+  "critic_opt_lr": 5e-5,
+
+  "agent": "A3C",
+  "n_explore_episodes": 1,
+  "nn_shared_backbone": false
+}
