@@ -1,0 +1,13 @@
+{
+    "title": "Ant vs Carpole",
+    "trials": [
+        {
+            "label": "Ant",
+            "file_url": "inference/Ant/A3C.json"
+        },
+        {
+            "label": "CartPole",
+            "file_url": "inference/CartPole/A3C.json"
+        }
+    ]
+}

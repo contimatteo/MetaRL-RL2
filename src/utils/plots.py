@@ -10,7 +10,7 @@ from scipy.interpolate import make_interp_spline
 class PlotUtils:
 
     @staticmethod
-    def __interpolate(x, y, k=3):
+    def interpolate(x, y, k=3):
         return make_interp_spline(x, y, k=k)(x)
 
     @staticmethod
@@ -29,12 +29,12 @@ class PlotUtils:
         test_rewards_avg = history["test_reward_avg"]
         test_dones_step = history["test_done_step"]
 
-        train_actor_loss = PlotUtils.__interpolate(train_ep, train_actor_loss, k=5)
-        train_critic_loss = PlotUtils.__interpolate(train_ep, train_critic_loss, k=5)
-        train_rewards_avg = PlotUtils.__interpolate(train_ep, train_rewards_avg, k=5)
-        train_dones_step = PlotUtils.__interpolate(train_ep, train_dones_step, k=5)
-        test_rewards_avg = PlotUtils.__interpolate(test_ep, test_rewards_avg, k=5)
-        test_dones_step = PlotUtils.__interpolate(test_ep, test_dones_step, k=5)
+        train_actor_loss = PlotUtils.interpolate(train_ep, train_actor_loss, k=5)
+        train_critic_loss = PlotUtils.interpolate(train_ep, train_critic_loss, k=5)
+        train_rewards_avg = PlotUtils.interpolate(train_ep, train_rewards_avg, k=5)
+        train_dones_step = PlotUtils.interpolate(train_ep, train_dones_step, k=5)
+        test_rewards_avg = PlotUtils.interpolate(test_ep, test_rewards_avg, k=5)
+        test_dones_step = PlotUtils.interpolate(test_ep, test_dones_step, k=5)
 
         axs[0, 0].plot(train_ep, train_actor_loss, 'tab:red')
         axs[0, 0].set_title('[train] Actor Loss (avg)')
