@@ -85,7 +85,7 @@ def AC_MetaMemoryLayer(name: str) -> Callable[[tf.Tensor], Layer]:
         ### LSTM (input) -> (batch, timestamps, trajectory_shape)
         ### x -> (1, None, trajectory_shape)
         x, memory_state, carry_state = LSTM(
-            128,
+            512,
             return_state=True,
             return_sequences=True,
             name=name,

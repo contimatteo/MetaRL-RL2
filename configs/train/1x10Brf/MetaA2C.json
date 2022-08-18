@@ -1,0 +1,26 @@
+{
+  "trial_id": "MetaA2C_1x10Brf",
+
+  "mode": "training",
+  "n_trials": 1,
+  "n_episodes": 1000,
+  "n_max_steps": 100,
+
+  "policy": "Network",
+  "meta_policy": true,
+
+  "envs": [
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    }
+  ],
+
+  "batch_size": 16,
+  "actor_opt_lr": 5e-5,
+  "critic_opt_lr": 5e-5,
+
+  "agent": "A2C",
+  "n_explore_episodes": 250,
+  "nn_shared_backbone": false
+}
