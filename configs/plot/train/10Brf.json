@@ -1,26 +1,26 @@
 {
-    "title": "(train) Cartpole - Agents",
+    "title": "(train) 10Brf - Agents",
     "trials": [
         {
-            "id": "A2C_CartPole",
+            "id": "A2C_10brf",
             "label": "A2C",
             "mode": "training",
             "metric": "reward_avg"
         },
         {
-            "id": "A3C_CartPole",
+            "id": "A3C_10brf",
             "label": "A3C",
             "mode": "training",
             "metric": "reward_avg"
         },
         {
-            "id": "MetaA2C_CartPole",
+            "id": "MetaA2C_10brf",
             "label": "A2C (meta)",
             "mode": "training",
             "metric": "reward_avg"
         },
         {
-            "id": "MetaA3C_CartPole",
+            "id": "MetaA3C_10brf",
             "label": "A3C (meta)",
             "mode": "training",
             "metric": "reward_avg"

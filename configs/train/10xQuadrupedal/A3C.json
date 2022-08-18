@@ -1,0 +1,82 @@
+{
+  "trial_id": "A3C_10xQuadrupedal",
+
+  "mode": "training",
+  "n_trials": 500,
+  "n_episodes": 20,
+  "n_max_steps": 10000,
+
+  "policy": "Network",
+  "meta_policy": false,
+
+  "envs": [
+    {
+      "name": "metagym/Quadrupedal",
+      "params": {
+        "task": "stairstair"
+      }
+    },
+    {
+      "name": "metagym/Quadrupedal",
+      "params": {
+        "task": "stairslope"
+      }
+    },
+    {
+      "name": "metagym/Quadrupedal",
+      "params": {
+        "task": "slopestair"
+      }
+    },
+    {
+      "name": "metagym/Quadrupedal",
+      "params": {
+        "task": "slopeslope"
+      }
+    },
+    {
+      "name": "metagym/Quadrupedal",
+      "params": {
+        "task": "stair13"
+      }
+    },
+    {
+      "name": "metagym/Quadrupedal",
+      "params": {
+        "task": "terrain"
+      }
+    },
+    {
+      "name": "metagym/Quadrupedal",
+      "params": {
+        "task": "balancebeam"
+      }
+    },
+    {
+      "name": "metagym/Quadrupedal",
+      "params": {
+        "task": "gallop"
+      }
+    },
+    {
+      "name": "metagym/Quadrupedal",
+      "params": {
+        "task": "Cave"
+      }
+    },
+    {
+      "name": "metagym/Quadrupedal",
+      "params": {
+        "task": "ground"
+      }
+    }
+  ],
+
+  "batch_size": 16,
+  "actor_opt_lr": 5e-5,
+  "critic_opt_lr": 5e-5,
+
+  "agent": "A3C",
+  "n_explore_episodes": 10,
+  "nn_shared_backbone": false
+}

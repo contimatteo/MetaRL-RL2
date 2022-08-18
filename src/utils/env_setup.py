@@ -5,14 +5,16 @@
 
 ###
 
+import warnings
+# warnings.filterwarnings("ignore")
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 import os
+import time
 import tensorflow
 
+time.sleep(2.)
 os.system('clear')
-
-# import warnings
-# warnings.filterwarnings("ignore")
-# warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # ###
 

@@ -1,3 +1,4 @@
+from array import array
 from typing import Any
 
 import json
@@ -6,6 +7,9 @@ import numpy as np
 import time
 
 from progress.bar import Bar
+from gym.spaces import Space
+from gym.spaces import Discrete
+from gym.spaces import Box
 
 from utils import PlotUtils
 from utils import LocalStorageManager
@@ -16,6 +20,19 @@ from .controller import Controller
 
 
 class StandardController(Controller):
+
+    def __parse_init_state(self, obs_space: Space, state) -> np.ndarray:
+        if isinstance(state, np.ndarray):
+            return state
+
+        new_state = []
+
+        if isinstance(state, tuple):
+            assert isinstance(state[0], np.ndarray)
+            assert obs_space.shape == state[0].shape
+            new_state = state[0]
+
+        return np.array(new_state).flatten()
 
     def __trajectory(self, state, prev_action, prev_reward) -> Any:
         if self.meta_policy:
@@ -48,6 +65,10 @@ class StandardController(Controller):
             env = self.envs[trial % len(self.envs)]
             self.agent.env_sync(env)
 
+            assert isinstance(env.action_space, Box) or isinstance(env.action_space, Discrete)
+            assert isinstance(env.observation_space,
+                              Box) or isinstance(env.observation_space, Discrete)
+
             ### INFO: after each trial, we have to reset the RNN hidden states.
             self.agent.reset_memory_layer_states()
 
@@ -57,6 +78,7 @@ class StandardController(Controller):
 
             for _ in range(n_explore_episodes):
                 state = env.reset()
+                state = self.__parse_init_state(env.observation_space, state)
                 self.agent.memory.reset()
 
                 steps, done, next_state = 0, False, None
@@ -64,6 +86,7 @@ class StandardController(Controller):
                 while not done and steps < self._config.n_max_steps:
                     action = env.action_space.sample()
                     next_state, reward, done, _ = env.step(action)
+                    done = bool(done)
                     steps += 1
                     self.agent.remember(steps, state, action, reward, next_state, done)
                     state = next_state
@@ -80,6 +103,7 @@ class StandardController(Controller):
             for _ in range(n_episodes):
                 state = env.reset()
                 self.agent.memory.reset()
+                state = self.__parse_init_state(env.observation_space, state)
 
                 steps, done, next_state = 0, False, None
                 tot_reward = 0
@@ -90,6 +114,7 @@ class StandardController(Controller):
                     trajectory = self.__trajectory(state, prev_action, prev_reward)
                     action = self.__action(trajectory)
                     next_state, reward, done, _ = env.step(action)
+                    done = bool(done)
 
                     steps += 1
                     self.agent.remember(steps, state, action, reward, next_state, done)

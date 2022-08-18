@@ -1,0 +1,42 @@
+{
+  "trial_id": "MetaA2C_5x10Brf",
+
+  "mode": "training",
+  "n_trials": 500,
+  "n_episodes": 20,
+  "n_max_steps": 100,
+
+  "policy": "Network",
+  "meta_policy": true,
+
+  "envs": [
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    },
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    },
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    },
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    },
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    }
+  ],
+
+  "batch_size": 16,
+  "actor_opt_lr": 5e-5,
+  "critic_opt_lr": 5e-5,
+
+  "agent": "A2C",
+  "n_explore_episodes": 5,
+  "nn_shared_backbone": false
+}

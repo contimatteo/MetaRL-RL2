@@ -1,10 +1,10 @@
 {
-  "trial_id": "A3C_10Brf",
+  "trial_id": "A2C_5x10Brf",
 
   "mode": "training",
-  "n_trials": 100,
-  "n_episodes": 10,
-  "n_max_steps": 1000,
+  "n_trials": 500,
+  "n_episodes": 20,
+  "n_max_steps": 100,
 
   "policy": "Network",
   "meta_policy": false,
@@ -32,11 +32,11 @@
     }
   ],
 
-  "batch_size": 32,
+  "batch_size": 16,
   "actor_opt_lr": 5e-5,
   "critic_opt_lr": 5e-5,
 
-  "agent": "A3C",
-  "n_explore_episodes": 1,
+  "agent": "A2C",
+  "n_explore_episodes": 5,
   "nn_shared_backbone": false
 }
