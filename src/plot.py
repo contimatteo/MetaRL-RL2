@@ -35,21 +35,27 @@ def __load_trials(configs: dict) -> List[dict]:
 
 def __plots(configs) -> None:
     title = configs["title"]
+    ylabel = configs["ylabel"]
     trials = configs["trials"]
 
     fig = plt.figure()
 
+    plt.title(title)
     fig.canvas.manager.set_window_title(title)
+
+    plt.xlabel("Episodes")
+    plt.ylabel(ylabel)
 
     #
 
     for trial in trials:
         y = trial["data"]
         x = np.arange(0, trial["n_episodes"], 1)
-        y = PlotUtils.interpolate(x, y, k=3)
+        # y = PlotUtils.interpolate(x, y, k=3)
         plt.plot(x, y, label=trial["label"], linewidth=2.0)
 
-    plt.legend()
+    # plt.legend()
+    plt.legend(fontsize=12)  # using a size in points
     plt.show()
 
 

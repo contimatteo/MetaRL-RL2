@@ -1,5 +1,6 @@
 {
-    "title": "(train) Cartpole - Agents",
+    "title": "[training] Cartpole",
+    "ylabel": "Rewards (avg)",
     "trials": [
         {
             "id": "A2C_CartPole",
