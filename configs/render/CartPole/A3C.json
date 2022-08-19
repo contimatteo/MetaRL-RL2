@@ -1,5 +1,5 @@
 {
-  "trial_id": "A3C_Network_CartPole",
+  "trial_id": "A3C_CartPole",
 
   "mode": "render",
   "n_trials": 1,

@@ -1,5 +1,65 @@
 [
   {
+    "title": "[training] 1x10Brf",
+    "ylabel": "Rewards (avg)",
+    "trials": [
+      {
+        "id": "A2C_1x10Brf",
+        "label": "A2C",
+        "mode": "training",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "A3C_1x10Brf",
+        "label": "A3C",
+        "mode": "training",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA2C_1x10Brf",
+        "label": "A2C (meta)",
+        "mode": "training",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA3C_1x10Brf",
+        "label": "A3C (meta)",
+        "mode": "training",
+        "metric": "reward_avg"
+      }
+    ]
+  },
+  {
+    "title": "[training] 1xQuadrupedal",
+    "ylabel": "Rewards (avg)",
+    "trials": [
+      {
+        "id": "A2C_1xQuadrupedal",
+        "label": "A2C",
+        "mode": "training",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "A3C_1xQuadrupedal",
+        "label": "A3C",
+        "mode": "training",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA2C_1xQuadrupedal",
+        "label": "A2C (meta)",
+        "mode": "training",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA3C_1xQuadrupedal",
+        "label": "A3C (meta)",
+        "mode": "training",
+        "metric": "reward_avg"
+      }
+    ]
+  },
+  {
     "title": "[training] Cartpole",
     "ylabel": "Rewards (avg)",
     "trials": [
@@ -30,29 +90,29 @@
     ]
   },
   {
-    "title": "[training] Cartpole 2",
+    "title": "[training] 1x10Brf",
     "ylabel": "Rewards (avg)",
     "trials": [
       {
-        "id": "A2C_CartPole",
+        "id": "A2C_1x10Brf",
         "label": "A2C",
         "mode": "training",
         "metric": "reward_avg"
       },
       {
-        "id": "A3C_CartPole",
+        "id": "A3C_1x10Brf",
         "label": "A3C",
         "mode": "training",
         "metric": "reward_avg"
       },
       {
-        "id": "MetaA2C_CartPole",
+        "id": "MetaA2C_1x10Brf",
         "label": "A2C (meta)",
         "mode": "training",
         "metric": "reward_avg"
       },
       {
-        "id": "MetaA3C_CartPole",
+        "id": "MetaA3C_1x10Brf",
         "label": "A3C (meta)",
         "mode": "training",
         "metric": "reward_avg"
@@ -60,29 +120,29 @@
     ]
   },
   {
-    "title": "[training] Cartpole 3",
+    "title": "[training] 1xQuadrupedal",
     "ylabel": "Rewards (avg)",
     "trials": [
       {
-        "id": "A2C_CartPole",
+        "id": "A2C_1xQuadrupedal",
         "label": "A2C",
         "mode": "training",
         "metric": "reward_avg"
       },
       {
-        "id": "A3C_CartPole",
+        "id": "A3C_1xQuadrupedal",
         "label": "A3C",
         "mode": "training",
         "metric": "reward_avg"
       },
       {
-        "id": "MetaA2C_CartPole",
+        "id": "MetaA2C_1xQuadrupedal",
         "label": "A2C (meta)",
         "mode": "training",
         "metric": "reward_avg"
       },
       {
-        "id": "MetaA3C_CartPole",
+        "id": "MetaA3C_1xQuadrupedal",
         "label": "A3C (meta)",
         "mode": "training",
         "metric": "reward_avg"
@@ -90,67 +150,7 @@
     ]
   },
   {
-    "title": "[training] Cartpole 4",
-    "ylabel": "Rewards (avg)",
-    "trials": [
-      {
-        "id": "A2C_CartPole",
-        "label": "A2C",
-        "mode": "training",
-        "metric": "reward_avg"
-      },
-      {
-        "id": "A3C_CartPole",
-        "label": "A3C",
-        "mode": "training",
-        "metric": "reward_avg"
-      },
-      {
-        "id": "MetaA2C_CartPole",
-        "label": "A2C (meta)",
-        "mode": "training",
-        "metric": "reward_avg"
-      },
-      {
-        "id": "MetaA3C_CartPole",
-        "label": "A3C (meta)",
-        "mode": "training",
-        "metric": "reward_avg"
-      }
-    ]
-  },
-  {
-    "title": "[training] Cartpole 5",
-    "ylabel": "Rewards (avg)",
-    "trials": [
-      {
-        "id": "A2C_CartPole",
-        "label": "A2C",
-        "mode": "training",
-        "metric": "reward_avg"
-      },
-      {
-        "id": "A3C_CartPole",
-        "label": "A3C",
-        "mode": "training",
-        "metric": "reward_avg"
-      },
-      {
-        "id": "MetaA2C_CartPole",
-        "label": "A2C (meta)",
-        "mode": "training",
-        "metric": "reward_avg"
-      },
-      {
-        "id": "MetaA3C_CartPole",
-        "label": "A3C (meta)",
-        "mode": "training",
-        "metric": "reward_avg"
-      }
-    ]
-  },
-  {
-    "title": "[training] Cartpole 6",
+    "title": "[training] Cartpole",
     "ylabel": "Rewards (avg)",
     "trials": [
       {

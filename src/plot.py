@@ -82,25 +82,35 @@ def __plots(configs) -> None:
 
 
 def __advanced_plot(configs: List[dict]) -> None:
-    fig, axs = plt.subplots(2, 3)
-    # plt.title(title)
-    # fig.canvas.manager.set_window_title(title)
+    if len(configs) == 4:
+        fig, axs = plt.subplots(2, 2)
+        xlabel_rows_idx = [2, 3]
+        ylabel_rows_idx = [0, 2]
+    else:
+        fig, axs = plt.subplots(2, 3)
+        xlabel_rows_idx = [3, 4, 5]
+        ylabel_rows_idx = [0, 3]
 
-    for ax, config in zip(axs.flat, configs):
+    for i, (ax, config) in enumerate(zip(axs.flat, configs)):
         title = config["title"]
         ylabel = config["ylabel"]
         trials = config["trials"]
 
         ax.set_title(title)
         ax.set(xlabel='Episodes', ylabel=ylabel)
-        ax.label_outer()  # Hide x/y labels and tick labels
+        # Hide x/y labels and tick labels
+        if i not in xlabel_rows_idx:
+            ax.xaxis.label.set_visible(False)
+        if i not in ylabel_rows_idx:
+            ax.yaxis.label.set_visible(False)
 
         for trial in trials:
             y = trial["data"]
             x = np.arange(0, trial["n_episodes"], 1)
-            # y = PlotUtils.interpolate(x, y, k=3)
+            # y = PlotUtils.interpolate(x, y, k=10)
             ax.plot(x, y, label=trial["label"], linewidth=2.0)
 
+        ax.legend()
     # plt.legend()
     # plt.legend(fontsize=12)  # using a size in points
     plt.show()
@@ -120,14 +130,17 @@ def main(args):
     with open(str(config_file_url), 'r', encoding="utf-8") as file:
         config = json.load(file)
 
-    assert isinstance(config, list)
-    assert len(config) == 6
+    assert isinstance(config, list) or isinstance(config, dict)
 
-    #
-
-    config = __load_multi_trials(config)
-
-    __advanced_plot(config)
+    if isinstance(config, dict):
+        config = __load_trials(config)
+        __plots(config)
+    elif isinstance(config, list):
+        assert len(config) == 4 or len(config) == 6
+        config = __load_multi_trials(config)
+        __advanced_plot(config)
+    else:
+        raise Exception("config invalid.")
 
 
 ###
