@@ -107,7 +107,7 @@ def __advanced_plot(configs: List[dict]) -> None:
         for trial in trials:
             y = trial["data"]
             x = np.arange(0, trial["n_episodes"], 1)
-            # y = PlotUtils.interpolate(x, y, k=10)
+            y = PlotUtils.interpolate(x, y, k=100)
             ax.plot(x, y, label=trial["label"], linewidth=1.5)
 
     handles, labels = axs.flat[-1].get_legend_handles_labels()
