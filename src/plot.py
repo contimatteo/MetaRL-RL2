@@ -108,9 +108,11 @@ def __advanced_plot(configs: List[dict]) -> None:
             y = trial["data"]
             x = np.arange(0, trial["n_episodes"], 1)
             # y = PlotUtils.interpolate(x, y, k=10)
-            ax.plot(x, y, label=trial["label"], linewidth=2.0)
+            ax.plot(x, y, label=trial["label"], linewidth=1.5)
 
-        ax.legend()
+    handles, labels = axs.flat[-1].get_legend_handles_labels()
+    fig.legend(handles, labels, loc='lower center', ncol=4, labelspacing=0.)
+
     # plt.legend()
     # plt.legend(fontsize=12)  # using a size in points
     plt.show()
