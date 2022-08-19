@@ -1,0 +1,18 @@
+{
+  "trial_id": "MetaA3C_CartPole",
+
+  "mode": "inference",
+  "n_trials": 1,
+  "n_episodes": 100,
+  "n_max_steps": 1000,
+
+  "policy": "Network",
+  "meta_policy": true,
+
+  "envs": [
+    {
+      "name": "gym/CartPole",
+      "params": {}
+    }
+  ]
+}

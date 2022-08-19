@@ -1,0 +1,18 @@
+{
+  "trial_id": "MetaA3C_1x10Brf",
+
+  "mode": "inference",
+  "n_trials": 1,
+  "n_episodes": 100,
+  "n_max_steps": 100,
+
+  "policy": "Network",
+  "meta_policy": true,
+
+  "envs": [
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    }
+  ]
+}

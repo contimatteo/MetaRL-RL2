@@ -1,0 +1,18 @@
+{
+  "trial_id": "A2C_1x10Brf",
+
+  "mode": "inference",
+  "n_trials": 1,
+  "n_episodes": 100,
+  "n_max_steps": 100,
+
+  "policy": "Network",
+  "meta_policy": false,
+
+  "envs": [
+    {
+      "name": "bandits/TenArmedRandomFixed",
+      "params": {}
+    }
+  ]
+}
