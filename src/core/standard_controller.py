@@ -221,6 +221,7 @@ class StandardController(Controller):
 
             for _ in range(n_episodes):
                 state = env.reset()
+                state = self.__parse_init_state(env.observation_space, state)
                 env.render()
 
                 steps, done, next_state = 0, False, None
@@ -275,7 +276,8 @@ class StandardController(Controller):
     #
 
     def run(self) -> None:
-        self._load_envs()
+        render_mode = self.mode == "render"
+        self._load_envs(render=render_mode)
 
         if self.mode == "training":
             self._load_networks()
