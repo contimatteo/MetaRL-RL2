@@ -91,6 +91,9 @@ def __advanced_plot(configs: List[dict]) -> None:
         xlabel_rows_idx = [3, 4, 5]
         ylabel_rows_idx = [0, 3]
 
+    # fig.set_size_inches(10, 5.5)
+    fig.set_dpi(200)
+
     for i, (ax, config) in enumerate(zip(axs.flat, configs)):
         title = config["title"]
         ylabel = config["ylabel"]
