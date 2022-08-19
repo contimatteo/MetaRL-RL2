@@ -1,0 +1,26 @@
+{
+  "trial_id": "A3C_3x2Bemh",
+
+  "mode": "inference",
+  "n_trials": 50,
+  "n_episodes": 2,
+  "n_max_steps": 100,
+
+  "policy": "Network",
+  "meta_policy": false,
+
+  "envs": [
+    {
+      "name": "bandits/TwoArmedDependentEasy",
+      "params": {}
+    },
+    {
+      "name": "bandits/TwoArmedDependentMedium",
+      "params": {}
+    },
+    {
+      "name": "bandits/TwoArmedDependentHard",
+      "params": {}
+    }
+  ]
+}

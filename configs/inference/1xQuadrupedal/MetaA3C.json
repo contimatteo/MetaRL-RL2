@@ -1,0 +1,20 @@
+{
+  "trial_id": "MetaA3C_1xQuadrupedal",
+
+  "mode": "inference",
+  "n_trials": 1,
+  "n_episodes": 100,
+  "n_max_steps": 10000,
+
+  "policy": "Network",
+  "meta_policy": true,
+
+  "envs": [
+    {
+      "name": "metagym/Quadrupedal",
+      "params": {
+        "task": "stairstair"
+      }
+    }
+  ]
+}

@@ -1,13 +1,13 @@
 {
-  "trial_id": "A3C_CartPole",
+  "trial_id": "MetaA3C_CartPole",
 
-  "mode": "render",
+  "mode": "inference",
   "n_trials": 1,
-  "n_episodes": 5,
+  "n_episodes": 100,
   "n_max_steps": 1000,
 
   "policy": "Network",
-  "meta_policy": false,
+  "meta_policy": true,
 
   "envs": [
     {

@@ -135,5 +135,3 @@ dmypy.json
 
 **/tmp/
 wandb*
-
-*.all.sh

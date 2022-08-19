@@ -45,7 +45,7 @@ class ActionUtils():
             mu = coefficients[:n_actions]
             sigma = coefficients[n_actions:]
             # sigma = tf.nn.softplus(sigma)
-            # sigma += 1e-5
+            sigma += 1e-5
 
             assert mu.shape[0] == sigma.shape[0] == n_actions
 

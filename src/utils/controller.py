@@ -23,7 +23,7 @@ from networks import MetaActorCriticNetworks
 class ControllerUtils():
 
     @staticmethod
-    def gym_env(name: str, params: dict) -> gym.Env:
+    def gym_env(name: str, params: dict, render: bool) -> gym.Env:
         assert isinstance(params, dict)
 
         if name == "gym/Ant":
@@ -78,7 +78,10 @@ class ControllerUtils():
                 "ground",
             ]
 
-            return gym.make('quadrupedal-v0', task=task)
+            if render:
+                return gym.make('quadrupedal-v0', render=1, task=task)
+            else:
+                return gym.make('quadrupedal-v0', task=task)
 
         #
 
