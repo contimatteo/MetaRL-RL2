@@ -171,6 +171,7 @@ class StandardController(Controller):
 
             for _ in range(n_episodes):
                 state = env.reset()
+                state = self.__parse_init_state(env.observation_space, state)
 
                 steps = 0
                 done = False
