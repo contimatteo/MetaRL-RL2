@@ -290,13 +290,13 @@ class StandardController(Controller):
         #
 
         if self.mode == "training":
-            history = self.__train()
-            self._save_trained_models()
-            # self.__plot(history, history)
+            # history = self.__train()
+            # self._save_trained_models()
+            raise Exception("mode not supported.")
 
         elif self.mode == "inference":
-            history = self.__inference()
-            # self.__plot(history, history)
+            # history = self.__inference()
+            raise Exception("mode not supported.")
 
         elif self.mode == "render":
             self.__render()
@@ -306,5 +306,5 @@ class StandardController(Controller):
 
         #
 
-        if self.mode == "training" or self.mode == "inference":
-            self.__save_history(history)
+        # if self.mode == "training" or self.mode == "inference":
+        #     self.__save_history(history)

@@ -23,5 +23,4 @@ def main(args):
 ###
 
 if __name__ == '__main__':
-    # main(parse_args())
-    pass
+    main(parse_args())
