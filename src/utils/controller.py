@@ -29,14 +29,20 @@ class ControllerUtils():
         if name == "gym/Ant":
             return gym.make("Ant-v4")
 
-        if name == "gym/LunarLander":
-            return gym.make("LunarLander-v2")
-
         if name == "gym/CartPole":
             return gym.make("CartPole-v0")
 
         if name == "gym/BipedalWalker":
             return gym.make("BipedalWalker-v3")
+
+        if name == "gym/LunarLander":
+            enable_wind = params["enable_wind"] if "enable_wind" in params else None
+            wind_power = params["wind_power"] if "wind_power" in params else None
+
+            assert isinstance(enable_wind, bool)
+            assert isinstance(wind_power, float)
+
+            return gym.make("LunarLander-v2", continuous=True)
 
         if name == "bandits/TwoArmedDependentEasy":
             return BanditTwoArmedDependentEasy()
