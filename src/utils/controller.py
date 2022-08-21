@@ -23,20 +23,26 @@ from networks import MetaActorCriticNetworks
 class ControllerUtils():
 
     @staticmethod
-    def gym_env(name: str, params: dict) -> gym.Env:
+    def gym_env(name: str, params: dict, render: bool) -> gym.Env:
         assert isinstance(params, dict)
 
         if name == "gym/Ant":
             return gym.make("Ant-v4")
-
-        if name == "gym/LunarLander":
-            return gym.make("LunarLander-v2")
 
         if name == "gym/CartPole":
             return gym.make("CartPole-v0")
 
         if name == "gym/BipedalWalker":
             return gym.make("BipedalWalker-v3")
+
+        if name == "gym/LunarLander":
+            enable_wind = params["enable_wind"] if "enable_wind" in params else None
+            wind_power = params["wind_power"] if "wind_power" in params else None
+
+            assert isinstance(enable_wind, bool)
+            assert isinstance(wind_power, float)
+
+            return gym.make("LunarLander-v2", continuous=True)
 
         if name == "bandits/TwoArmedDependentEasy":
             return BanditTwoArmedDependentEasy()
@@ -78,7 +84,10 @@ class ControllerUtils():
                 "ground",
             ]
 
-            return gym.make('quadrupedal-v0', task=task)
+            if render:
+                return gym.make('quadrupedal-v0', render=1, task=task)
+            else:
+                return gym.make('quadrupedal-v0', task=task)
 
         #
 

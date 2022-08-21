@@ -1,0 +1,51 @@
+{
+    "trial_id": "A3C_4xLunarLander",
+  
+    "mode": "training",
+    "n_trials": 200,
+    "n_episodes": 50,
+    "n_max_steps": 10000,
+  
+    "policy": "Network",
+    "meta_policy": false,
+  
+    "envs": [
+      {
+        "name": "gym/LunarLander",
+        "params": {
+          "enable_wind": false,
+          "wind_power": 0.0
+        }
+      },
+      {
+        "name": "gym/LunarLander",
+        "params": {
+          "enable_wind": true,
+          "wind_power": 5.0
+        }
+      },
+      {
+          "name": "gym/LunarLander",
+          "params": {
+            "enable_wind": true,
+            "wind_power": 10.0
+          }
+        },
+      {
+        "name": "gym/LunarLander",
+        "params": {
+          "enable_wind": true,
+          "wind_power": 15.0
+        }
+      }
+    ],
+  
+    "batch_size": 16,
+    "actor_opt_lr": 5e-5,
+    "critic_opt_lr": 5e-5,
+  
+    "agent": "A3C",
+    "n_explore_episodes": 5,
+    "nn_shared_backbone": false
+  }
+  

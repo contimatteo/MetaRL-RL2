@@ -125,11 +125,11 @@ class Controller():
 
     #
 
-    def _load_envs(self) -> None:
+    def _load_envs(self, render: bool = False) -> None:
         self.envs = []
 
         for env in self._config.envs:
-            env = ControllerUtils.gym_env(env["name"], env["params"])
+            env = ControllerUtils.gym_env(env["name"], env["params"], render)
             self.envs.append(env)
 
     def _load_networks(self) -> None:

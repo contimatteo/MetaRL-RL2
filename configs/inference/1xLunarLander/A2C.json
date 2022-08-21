@@ -1,0 +1,21 @@
+{
+  "trial_id": "A2C_1xLunarLander",
+
+  "mode": "inference",
+  "n_trials": 1,
+  "n_episodes": 100,
+  "n_max_steps": 1000,
+
+  "policy": "Network",
+  "meta_policy": false,
+
+  "envs": [
+    {
+      "name": "gym/LunarLander",
+      "params": {
+        "enable_wind": false,
+        "wind_power": 0.0
+      }
+    }
+  ]
+}

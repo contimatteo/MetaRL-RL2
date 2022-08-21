@@ -1,9 +1,9 @@
 {
-  "trial_id": "A3C_Network_Ant",
+  "trial_id": "A3C_CartPole",
 
-  "mode": "render",
+  "mode": "inference",
   "n_trials": 1,
-  "n_episodes": 5,
+  "n_episodes": 100,
   "n_max_steps": 1000,
 
   "policy": "Network",
@@ -11,7 +11,7 @@
 
   "envs": [
     {
-      "name": "gym/Ant",
+      "name": "gym/CartPole",
       "params": {}
     }
   ]

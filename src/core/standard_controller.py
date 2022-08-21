@@ -171,6 +171,7 @@ class StandardController(Controller):
 
             for _ in range(n_episodes):
                 state = env.reset()
+                state = self.__parse_init_state(env.observation_space, state)
 
                 steps = 0
                 done = False
@@ -220,6 +221,7 @@ class StandardController(Controller):
 
             for _ in range(n_episodes):
                 state = env.reset()
+                state = self.__parse_init_state(env.observation_space, state)
                 env.render()
 
                 steps, done, next_state = 0, False, None
@@ -274,7 +276,8 @@ class StandardController(Controller):
     #
 
     def run(self) -> None:
-        self._load_envs()
+        render_mode = self.mode == "render"
+        self._load_envs(render=render_mode)
 
         if self.mode == "training":
             self._load_networks()
@@ -291,11 +294,9 @@ class StandardController(Controller):
         if self.mode == "training":
             history = self.__train()
             self._save_trained_models()
-            # self.__plot(history, history)
 
         elif self.mode == "inference":
             history = self.__inference()
-            # self.__plot(history, history)
 
         elif self.mode == "render":
             self.__render()

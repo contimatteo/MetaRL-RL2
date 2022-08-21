@@ -11,7 +11,7 @@ class PlotUtils:
 
     @staticmethod
     def interpolate(x, y, k):
-        window_length = int(len(x) / 5)
+        window_length = int(len(x) / k)
         # return make_interp_spline(x, y, k=k)(x)
         return savgol_filter(y, window_length, 3)
 
