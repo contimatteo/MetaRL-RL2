@@ -82,17 +82,19 @@ def __plots(configs) -> None:
 
 
 def __advanced_plot(configs: List[dict]) -> None:
-    if len(configs) == 4:
-        fig, axs = plt.subplots(2, 2)
-        xlabel_rows_idx = [2, 3]
-        ylabel_rows_idx = [0, 2]
+    if len(configs) == 8:
+        fig, axs = plt.subplots(2, 4)
+        xlabel_rows_idx = [4, 5, 6, 7]
+        ylabel_rows_idx = [0, 4]
     else:
         fig, axs = plt.subplots(2, 3)
         xlabel_rows_idx = [3, 4, 5]
         ylabel_rows_idx = [0, 3]
 
+    # fig.tight_layout()
     # fig.set_size_inches(10, 5.5)
     fig.set_dpi(200)
+    # plt.subplots_adjust(wspace=0.3, hspace=0.2)
 
     for i, (ax, config) in enumerate(zip(axs.flat, configs)):
         title = config["title"]
@@ -141,7 +143,7 @@ def main(args):
         config = __load_trials(config)
         __plots(config)
     elif isinstance(config, list):
-        assert len(config) == 4 or len(config) == 6
+        assert len(config) == 8 or len(config) == 6
         config = __load_multi_trials(config)
         __advanced_plot(config)
     else:

@@ -90,6 +90,37 @@
     ]
   },
   {
+    "title": "[training] 10xQuadrupedal",
+    "ylabel": "Rewards (avg)",
+    "trials": [
+      {
+        "id": "A2C_10xQuadrupedal",
+        "label": "A2C",
+        "mode": "training",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "A3C_10xQuadrupedal",
+        "label": "A3C",
+        "mode": "training",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA2C_10xQuadrupedal",
+        "label": "A2C (meta)",
+        "mode": "training",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA3C_10xQuadrupedal",
+        "label": "A3C (meta)",
+        "mode": "training",
+        "metric": "reward_avg"
+      }
+    ]
+  },
+  
+  {
     "title": "[inference] 3x2Bemh",
     "ylabel": "Rewards (avg)",
     "trials": [
@@ -173,6 +204,36 @@
       },
       {
         "id": "MetaA3C_4xLunarLander",
+        "label": "A3C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      }
+    ]
+  },
+  {
+    "title": "[inference] 10xQuadrupedal",
+    "ylabel": "Rewards (avg)",
+    "trials": [
+      {
+        "id": "A2C_10xQuadrupedal",
+        "label": "A2C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "A3C_10xQuadrupedal",
+        "label": "A3C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA2C_10xQuadrupedal",
+        "label": "A2C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA3C_10xQuadrupedal",
         "label": "A3C (meta)",
         "mode": "inference",
         "metric": "reward_avg"
