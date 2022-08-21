@@ -45,4 +45,4 @@
 # python src/run.py --config configs/train/4xLunarLander/A2C.json
 # python src/run.py --config configs/train/4xLunarLander/A3C.json
 # python src/run.py --config configs/train/4xLunarLander/MetaA2C.json
-python src/run.py --config configs/train/4xLunarLander/MetaA3C.json
+# python src/run.py --config configs/train/4xLunarLander/MetaA3C.json
