@@ -2,8 +2,10 @@
 
 
 ## Introduction
+Meta Reinforcement Learning, in short, is to do meta-learning in the field of reinforcement learning. Usually the train and test tasks are different but drawn from the same family of problems.
 
-*Meta Reinforcement Learning, in short, is to do meta-learning in the field of reinforcement learning. Usually the train and test tasks are different but drawn from the same family of problems.*
+*Deep reinforcement learning (deep RL) has been successful in learning sophisticated behaviors automatically; however, the learning process requires a huge number of trials. In contrast, animals can learn new tasks in just a few trials, benefiting from their prior knowledge about the world. The RL2 algorithm is encoded in the weights of the RNN, which are learned slowly through a general-purpose ("slow") RL algorithm. The RNN receives all information a typical RL algorithm would receive, including observations, actions, rewards, and termination flags; and it retains its state across episodes in a given Markov Decision Process (MDP). The activations of the RNN store the state of the "fast" RL algorithm on the current (previously unseen) MDP.*
+(source: https://arxiv.org/abs/1611.02779)
 
 ### Documentation
 You can find the report of the project [here](./report.pdf).
@@ -56,12 +58,10 @@ $ python src/run.py -h
 ```
 
 ### Configurations
-The base structure of the json configurations file can be found inside [this file](./configs/default.json).
-Look at the [configs](./config/) folder for additional configuration examples.
+The base structure of the json configurations file can be found inside [this file](./configs/default.json). Look at the [configs](./configs/) folder for additional configuration examples.
 
 ### Training
-In order to train all the models from scratch, you can uncomment all thw rows 
-inside [this file](./scripts/train.all.sh). Once you have done that, you have to run:
+In order to train all the models from scratch, you can uncomment all the rows inside [this file](./scripts/train.all.sh). Once you have done that, you have to run:
 ```
 $ sh scripts/train.all.sh
 ```
@@ -72,8 +72,7 @@ $ python src/run.py "<path_of_your_json_config>"
 where the json file has the parameter `mode="training"`.
 
 ### Inference
-In order to run the inference procedure on all the models, you can uncomment all the 
-rows inside [this file](./scripts/test.all.sh). Once you have done that, you have to run:
+In order to run the inference procedure on all the models, you can uncomment all the rows inside [this file](./scripts/test.all.sh). Once you have done that, you have to run:
 ```
 $ sh scripts/test.all.sh
 ```
@@ -84,8 +83,7 @@ $ python src/run.py "<path_of_your_json_config>"
 where the json file has the parameter `mode="inference"`.
 
 ### Rendering
-In order to run the rendering procedure on all the models, you can uncomment all the 
-rows inside [this file](./scripts/render.all.sh). Once you have done that, you have to run:
+In order to run the rendering procedure on all the models, you can uncomment all the rows inside [this file](./scripts/render.all.sh). Once you have done that, you have to run:
 ```
 $ sh scripts/render.all.sh
 ```
