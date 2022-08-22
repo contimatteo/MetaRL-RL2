@@ -1,4 +1,4 @@
-# Meta Reinforcement Learning (RL$$^2$$)
+# Meta Reinforcement Learning (RL^2)
 
 
 ## Introduction
