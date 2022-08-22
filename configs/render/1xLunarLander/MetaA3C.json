@@ -1,5 +1,5 @@
 {
-  "trial_id": "A3C_1xQuadrupedal",
+  "trial_id": "MetaA3C_1xLunarLander",
 
   "mode": "render",
   "n_trials": 1,
@@ -7,13 +7,14 @@
   "n_max_steps": 10000,
 
   "policy": "Network",
-  "meta_policy": false,
+  "meta_policy": true,
 
   "envs": [
     {
-      "name": "metagym/Quadrupedal",
+      "name": "gym/LunarLander",
       "params": {
-        "task": "stairstair"
+        "enable_wind": false,
+        "wind_power": 0.0
       }
     }
   ]
