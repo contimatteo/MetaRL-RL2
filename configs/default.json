@@ -1,0 +1,26 @@
+{
+  "trial_id": "<str>",
+
+  "mode": "<training,inference,render>",
+  "n_trials": "<int>",
+  "n_episodes": "<int>",
+  "n_max_steps": "<int>",
+
+  "policy": "<str>",
+  "meta_policy": "<bool>",
+
+  "envs": [
+    {
+      "name": "<str>",
+      "params": "<dict>"
+    }
+  ],
+
+  "batch_size": "<int>",
+  "actor_opt_lr": "<float>",
+  "critic_opt_lr": "<float>",
+
+  "agent": "<str>",
+  "n_explore_episodes": "<int>",
+  "nn_shared_backbone": "<bool>"
+}
