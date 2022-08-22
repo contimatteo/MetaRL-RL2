@@ -58,7 +58,9 @@ $ python src/run.py -h
 ```
 
 ### Configurations
-The base structure of the json configurations file can be found inside [this file](./configs/default.json). Look at the [configs](./configs/) folder for additional configuration examples.
+The base structure of the json configurations file can be found inside [this file](./configs/default.json). 
+
+Look at the [configs](./configs/) folder for additional configuration examples.
 
 ### Training
 In order to train all the models from scratch, you can uncomment all the rows inside [this file](./scripts/train.all.sh). Once you have done that, you have to run:
