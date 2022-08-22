@@ -1,4 +1,4 @@
-# AAS-project
+# Meta Reinforcement Learning (RL$^2$)
 
 
 ## Introduction
