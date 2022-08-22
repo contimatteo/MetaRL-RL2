@@ -5,7 +5,7 @@ import pathlib
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='MetaRL')
+    parser = argparse.ArgumentParser(description='MetaRL-RL2')
 
     parser.add_argument('--config', required=True, type=pathlib.Path, help='config file url')
 

@@ -25,12 +25,12 @@
       }
     },
     {
-        "name": "gym/LunarLander",
-        "params": {
-          "enable_wind": true,
-          "wind_power": 10.0
-        }
-      },
+      "name": "gym/LunarLander",
+      "params": {
+        "enable_wind": true,
+        "wind_power": 10.0
+      }
+    },
     {
       "name": "gym/LunarLander",
       "params": {

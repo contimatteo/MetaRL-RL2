@@ -1,10 +1,10 @@
 {
-  "trial_id": "A3C_Network_CartPole",
+  "trial_id": "A2C_CartPole",
 
   "mode": "render",
   "n_trials": 1,
-  "n_episodes": 3,
-  "n_max_steps": 500,
+  "n_episodes": 5,
+  "n_max_steps": 1000,
 
   "policy": "Network",
   "meta_policy": false,
