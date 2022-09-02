@@ -2,7 +2,6 @@ from typing import Any, Tuple
 
 import numpy as np
 import tensorflow as tf
-import tensorflow_probability as tfp
 
 from tensorflow.python.keras.losses import mean_squared_error
 
@@ -35,11 +34,7 @@ class A2C(AC):
         self, rewards: np.ndarray, disc_rewards: tf.Tensor, state_v: np.ndarray,
         next_state_v: np.ndarray, dones: T_Tensor
     ) -> T_Tensor:
-        ### TODO: we have to use the "N-Step Advantage Estimate"
         advantages = AdvantageEstimateUtils.MC(disc_rewards, tf.stop_gradient(state_v))
-        # advantages = AdvantageEstimateUtils.TD(self._gamma, rewards, state_v, next_state_v, dones)
-        # advantages = AdvantageEstimateUtils.NStep()
-
         return tf.stop_gradient(advantages)
 
     #
@@ -65,8 +60,6 @@ class A2C(AC):
 
         def __batch_loss_reduction(batch_losses):
             loss = tf.stack(batch_losses)
-            ### TODO: which is the right loss reduce operator?
-            # return tf.reduce_sum(loss)
             return tf.reduce_mean(loss)
 
         policy_loss = __batch_loss_reduction(policy_losses)

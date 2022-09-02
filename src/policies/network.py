@@ -1,10 +1,5 @@
-from typing import Any
-from enum import Enum
-
 import gym
 import numpy as np
-import tensorflow as tf
-import tensorflow_probability as tfp
 
 from tensorflow.python.keras import Model
 
@@ -49,21 +44,3 @@ class NetworkPolicy(Policy):
         actions = actions.numpy()
 
         return actions
-
-        # if not self._is_discrete:
-        #     return _actions
-
-        # act_probs = _actions.numpy()
-
-        # if self.action_sampling_mode == "distribution":
-        #     # distribution = tfp.distributions.Categorical(
-        #     #     probs=act_probs + .000001, dtype=tf.float32
-        #     # )
-        #     distribution = tfp.distributions.Categorical(logits=act_probs, dtype=tf.float32)
-
-        #     actions = distribution.sample().numpy()
-        #     assert actions.shape[0] == obs.shape[0]
-
-        #     return actions
-
-        # raise Exception("[DeepNetworkPolicy] `action_sampling_mode` not supported.")

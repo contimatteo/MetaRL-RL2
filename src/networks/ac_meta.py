@@ -1,8 +1,7 @@
-from typing import Tuple, Optional
+from typing import Tuple
 
 import gym
 
-from gym.spaces import Discrete
 from tensorflow.python.keras import Model
 from tensorflow.python.keras.layers import Input
 from tensorflow.python.keras.layers import Flatten

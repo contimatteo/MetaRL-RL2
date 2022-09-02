@@ -54,13 +54,6 @@ class Policy(abc.ABC):
     def act(self, trajectory: np.ndarray, mask=None) -> np.ndarray:
         assert isinstance(trajectory, np.ndarray) or isinstance(trajectory, list)
 
-        # if len(obs.shape) < 2:
-        #     ### reshape in order to match network `batch` dimension
-        #     obs = np.expand_dims(obs, axis=0)  ### (x,) -> (1, x)
-
-        # assert len(obs.shape) > 0  ### batch dimension is required
-        # assert obs.shape[0] == 1
-
         trajectory = self._add_batch_dim_to_trajectory(trajectory)
 
         actions = self._act(trajectory, mask=mask)

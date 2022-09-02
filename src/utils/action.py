@@ -50,12 +50,6 @@ class ActionUtils():
             assert mu.shape[0] == sigma.shape[0] == n_actions
 
             distribution = tfp.distributions.Normal(loc=mu, scale=sigma, validate_args=True)
-            # distribution = tfp.distributions.MultivariateNormalDiag(
-            #     loc=mu, scale=sigma, validate_args=True
-            # )
-            # distribution = tfp.distributions.TruncatedNormal(
-            #     loc=mu, scale=sigma, low=bounds[0], high=bounds[1]
-            # )
 
         return distribution
 

@@ -57,7 +57,6 @@ class Agent():
 
         assert isinstance(step, int)
         assert isinstance(state, np.ndarray)
-        # assert isinstance(action, int)
         assert isinstance(reward, float) or isinstance(reward, int)
         assert isinstance(next_state, np.ndarray)
         assert isinstance(done, bool)
@@ -72,9 +71,6 @@ class Agent():
         self.memory.store(step, record)
 
     #
-
-    def act(self, state: np.ndarray) -> np.ndarray:
-        raise NotImplementedError
 
     def train(self, batch_size: int) -> Any:
         raise NotImplementedError

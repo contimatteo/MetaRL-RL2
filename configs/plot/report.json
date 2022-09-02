@@ -1,0 +1,183 @@
+[
+  {
+    "title": "[inference] Cartpole",
+    "ylabel": "Rewards (avg)",
+    "trials": [
+      {
+        "id": "A2C_CartPole",
+        "label": "A2C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "A3C_CartPole",
+        "label": "A3C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA2C_CartPole",
+        "label": "A2C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA3C_CartPole",
+        "label": "A3C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      }
+    ]
+  },
+  {
+    "title": "[inference] 1x10Brf",
+    "ylabel": "Rewards (avg)",
+    "trials": [
+      {
+        "id": "A2C_1x10Brf",
+        "label": "A2C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "A3C_1x10Brf",
+        "label": "A3C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA2C_1x10Brf",
+        "label": "A2C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA3C_1x10Brf",
+        "label": "A3C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      }
+    ]
+  },
+  {
+    "title": "[inference] 1xLunarLander",
+    "ylabel": "Rewards (avg)",
+    "trials": [
+      {
+        "id": "A2C_1xLunarLander",
+        "label": "A2C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "A3C_1xLunarLander",
+        "label": "A3C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA2C_1xLunarLander",
+        "label": "A2C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA3C_1xLunarLander",
+        "label": "A3C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      }
+    ]
+  },
+
+  {
+    "title": "[inference] 3x2Bemh",
+    "ylabel": "Rewards (avg)",
+    "trials": [
+      {
+        "id": "A2C_3x2Bemh",
+        "label": "A2C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "A3C_3x2Bemh",
+        "label": "A3C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA2C_3x2Bemh",
+        "label": "A2C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA3C_3x2Bemh",
+        "label": "A3C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      }
+    ]
+  },
+  {
+    "title": "[inference] 5x10Brf",
+    "ylabel": "Rewards (avg)",
+    "trials": [
+      {
+        "id": "A2C_5x10Brf",
+        "label": "A2C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "A3C_5x10Brf",
+        "label": "A3C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA2C_5x10Brf",
+        "label": "A2C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA3C_5x10Brf",
+        "label": "A3C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      }
+    ]
+  },
+  {
+    "title": "[inference] 4xLunarLander",
+    "ylabel": "Rewards (avg)",
+    "trials": [
+      {
+        "id": "A2C_4xLunarLander",
+        "label": "A2C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "A3C_4xLunarLander",
+        "label": "A3C",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA2C_4xLunarLander",
+        "label": "A2C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      },
+      {
+        "id": "MetaA3C_4xLunarLander",
+        "label": "A3C (meta)",
+        "mode": "inference",
+        "metric": "reward_avg"
+      }
+    ]
+  }
+]

@@ -1,4 +1,4 @@
-from typing import Any, Optional, Tuple, List, Union
+from typing import Any, Optional, Tuple, Union
 
 import numpy as np
 import tensorflow as tf
@@ -75,22 +75,6 @@ class AC(Agent):
         assert memory_layer is not None
         return memory_layer
 
-    def get_meta_memory_layer_states(self) -> List[tf.Tensor]:
-        if not self.meta_algorithm:
-            return
-        # return self.meta_memory_layer.states
-        raise NotImplementedError
-
-    def set_meta_memory_layer_states(self, states: List[tf.Tensor]) -> None:
-        if not self.meta_algorithm:
-            return
-
-        assert isinstance(states, list)
-        assert states[0] is not None and states[1] is not None
-
-        # self.meta_memory_layer.reset_states(states)
-        raise NotImplementedError
-
     def reset_memory_layer_states(self) -> None:
         if not self.meta_algorithm:
             return
@@ -164,9 +148,6 @@ class AC(Agent):
         raise NotImplementedError
 
     #
-
-    # def act(self, state: np.ndarray) -> np.ndarray:
-    #     return self.policy.act(state)
 
     def train(self, batch_size: Optional[int] = None, shuffle: bool = False) -> Any:
         ep_data = self.memory.all()
@@ -254,8 +235,6 @@ class AC(Agent):
             assert _states.shape[0] == _advantages.shape[0]
 
             if self.meta_algorithm:
-                # assert b_start_idx < 1 or meta_memory_states[0] is not None
-                # assert b_start_idx < 1 or meta_memory_states[1] is not None
                 ### assert that all elements of the trajectories have the same batch_size dimension
                 for i in range(len(_trajectories) - 1):
                     assert _trajectories[i].shape[0] == _next_trajectories[i].shape[0]
@@ -274,7 +253,6 @@ class AC(Agent):
 
                 _states_val = tf.reshape(_states_val, (len(_states_val)))
                 _deltas = _advantages
-                # _deltas = tf.math.subtract(_advantages, _states_val)
 
                 actor_loss = self._actor_network_loss(
                     _actions_coeff, _actions, tf.stop_gradient(_deltas)
